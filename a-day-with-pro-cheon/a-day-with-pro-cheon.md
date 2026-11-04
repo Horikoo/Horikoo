@@ -13,7 +13,9 @@
 Square children's picture-book illustration, bright and warm colors, soft rounded shapes, gentle watercolor-and-gouache texture, expressive lovable characters, tropical Guam setting with turquoise water and sunshine. Ages 3–5. No text, no letters, no logos, no brand patterns. Leave clean empty space for text where noted.
 
 **[PRO CHEON]**
-Pro Cheon: a cheerful Korean adult tour guide, slim lean build, sun-tanned skin, clean-shaven, huge open toothy smile. Always wears a light gray baseball cap with a dark brim and round black-framed sunglasses with blue mirrored lenses. Teal short-sleeve rash guard with a small white dolphin logo, navy board shorts, black water shoes, yellow waterproof bag.
+Pro Cheon: a friendly Korean adult dolphin tour guide: very short buzz-cut black hair, thick dark bold eyebrows, confident kind eyes, strong square jaw, sun-tanned skin, muscular athletic build like a former fighter. Both arms fully covered with traditional Asian-style sleeve tattoos of clouds and waves in soft brown ink. Huge warm open toothy smile. Wears a light gray baseball cap with a dark brim and round black-framed sunglasses with blue mirrored lenses, a teal short-sleeve rash guard with a small white dolphin logo, navy board shorts, black water shoes, and a yellow waterproof bag.
+
+- 기준 캐릭터 시트: `art/pro-cheon-character-sheet-v3.png` (확정) / 원본 캐릭터: `art/pro-cheon-original-character.png`
 
 - 배 위: + 주황색 구명조끼
 - 스노클링: 모자 벗고, 선글라스 대신 스노클 마스크 (래시가드는 그대로)
