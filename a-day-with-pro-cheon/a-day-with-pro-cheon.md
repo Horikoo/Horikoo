@@ -3,7 +3,7 @@
 - 대상: 3~5세 / 판형: 8.5×8.5인치 정사각형, 32페이지 (본문 24p + 앞뒤 구성)
 - 언어판: 영어 ✅ / 한국어 ✅ / 일본어 ✅
 - 배 이름: **Blue Cruise** (블루 크루즈 호 / ブルークルーズごう) — 실제 업체명 '파란크루즈'는 사용하지 않고 이름을 바꿈
-- 선장: **Captain Tommyboy** (토미보이 선장님) / 크루: **Pooh** (푸 / プー) — 실제 별명 '곰돌이 푸상'에서 따옴. 디즈니 캐릭터와 겹치지 않도록 '곰돌이', 'プーさん', 곰·꿀단지 그림은 쓰지 않음
+- 선장: **Captain Tommyboy** (토미보이 선장님) — 별명 "Turtle / 거북이 / カメさん" (8p에서 소개 → 18p 바다거북 장면에서 다시 등장) / 크루: **Pooh** (푸 / プー) — 실제 별명 '곰돌이 푸상'에서 따옴. 디즈니 캐릭터와 겹치지 않도록 '곰돌이', 'プーさん', 곰·꿀단지 그림은 쓰지 않음
 - 반복 문장: "Safety first, fun next!" / "Look, look! What do you see?" / "Splish, splash, here we go!"
 
 ---
@@ -90,8 +90,8 @@ Create a children's picture-book character reference sheet of Pro Cheon, based o
 
 ### Page 8 — 블록: PRO CHEON, CAPTAIN, KIDS, BOAT / 여백: 위쪽 하늘
 - 장면: Wide view: the boat speeding across a deep-blue sea, white spray, children laughing at the rail, Captain Tommyboy at the wheel.
-- EN: Vroom, vroom! The boat zooms across the sea. Splish, splash, here we go!
-- KO: 부릉부릉! 배가 파란 바다를 달려요. 첨벙첨벙, 출발!
+- EN: Vroom, vroom! The boat zooms across the sea. Splish, splash, here we go! Captain Tommyboy has a funny nickname… "Turtle!"
+- KO: 부릉부릉! 배가 파란 바다를 달려요. 첨벙첨벙, 출발! 토미보이 선장님의 별명은… "거북이"래요!
 
 ### Page 9 — 블록: KIDS, BOAT / 여백: 위쪽
 - 장면: Flying fish gliding above the waves beside the boat. Children point in surprise, mouths open.
@@ -138,10 +138,10 @@ Create a children's picture-book character reference sheet of Pro Cheon, based o
 - EN: On the way back… Look, look! The dolphins are here again! "Maybe they came to say goodbye," says Mina.
 - KO: 돌아가는 길에… 봐 봐! 돌고래가 또 나타났어요! "우리한테 잘 가라고 인사하러 왔나 봐." 미나가 말했어요.
 
-### Page 18 — 블록: KIDS, BOAT / 여백: 위쪽
-- 장면: A green sea turtle's head pops up for a breath at a respectful distance from the boat. Children watch quietly in wonder.
-- EN: A round head pops up. Blink, blink. A sea turtle! It takes a big breath… and glides away.
-- KO: 동그란 머리가 쏙! 눈을 끔뻑끔뻑. 바다거북이에요! 숨을 크게 한 번 쉬더니… 스르르 헤엄쳐 가요.
+### Page 18 — 블록: CAPTAIN, KIDS, BOAT / 여백: 위쪽
+- 장면: A green sea turtle's head pops up for a breath at a respectful distance from the boat. Children watch quietly in wonder. Captain Tommyboy laughs at the wheel in the background while Kenta points from the turtle to the captain.
+- EN: A round head pops up. Blink, blink. A sea turtle! "It's Captain Turtle's friend!" giggles Kenta. It takes a big breath… and glides away.
+- KO: 동그란 머리가 쏙! 눈을 끔뻑끔뻑. 바다거북이에요! "거북이 선장님 친구다!" 켄타가 킥킥 웃어요. 바다거북은 숨을 크게 한 번 쉬더니… 스르르 헤엄쳐 가요.
 
 ### Page 19 — 블록: CAPTAIN, KIDS, BOAT / 여백: 위쪽
 - 장면: Group photo: Captain Tommyboy in the middle, the children holding certificates. The certificates show only decoration, no text.
@@ -251,7 +251,7 @@ Perfect for bedtime, family trips to Guam, and every little ocean lover!
 | 5 | 「ここで ちょっと ストップ!」と チョンプロ。「ここは エメラルドバレーだよ!」 みずが ほうせきみたいな みどりいろ。「みんな、はい チーズ!」 パシャッ! |
 | 6 | みなとで おおきな しろい ふねが まっていたよ。「これが みんなの ふね、ブルークルーズごう!」と チョンプロ。「それから、トミーボーイせんちょうと なかまの プー!」 せんちょうさんと プーが おおきな てを ふって「ようこそ、たんけんたい!」 |
 | 7 | ライフジャケットを きて、カチッ! てすりを しっかり にぎって、せんちょうさんの おはなしを よく きこうね。「あんぜんが いちばん!」と チョンプロ。「たのしいのは そのあと!」と こどもたち。 |
-| 8 | ブルルン! ふねが あおい うみを はしるよ。ザブーン、しゅっぱーつ! |
+| 8 | ブルルン! ふねが あおい うみを はしるよ。ザブーン、しゅっぱーつ! せんちょうさんの あだなは… 「カメさん」なんだって! |
 | 9 | みて みて! なにが みえるかな? さかなが… とんでる?! ビューン! トビウオが なみの うえを とんでいくよ。 |
 | 10 | チョンプロが ちいさな こえで いったよ。「しーっ… しずかに みていようね。ここは イルカたちの おうちなんだ。」 |
 | 11 | ザバッ! イルカだ! いち、に、さん… わあ、たくさん! 「すごーい!」と ケンタくん。 |
@@ -261,7 +261,7 @@ Perfect for bedtime, family trips to Guam, and every little ocean lover!
 | 15 | ふねに もどったら… ぐぅ〜、ぐぅ〜! なんの おと? 「おなかの おとだ!」 ミナちゃんが くすくす わらったよ。 |
 | 16 | チョンプロの おひるごはん サプライズ! マグロの おさしみ、キンパ、サンドイッチ、おかし、ジュースも! もぐもぐ、おいしいね! |
 | 17 | かえりみちで… みて みて! イルカが また きたよ! 「バイバイって いいに きたのかな?」と ミナちゃん。 |
-| 18 | まあるい あたまが ひょこっ! めを ぱちぱち。ウミガメだ! おおきく いきを すって… すいーっと およいで いったよ。 |
+| 18 | まあるい あたまが ひょこっ! めを ぱちぱち。ウミガメだ! 「カメさんせんちょうの おともだちだ!」と ケンタくん。ウミガメは おおきく いきを すって… すいーっと およいで いったよ。 |
 | 19 | パシャッ! トミーボーイせんちょうと きねんしゃしん。みんな とくべつな しょうめいしょも もらったよ。「うみの たんけんか、たんじょう!」 |
 | 20 | ふねの したを おおきな かげが すーっと とおっていくよ。サメと エイだ! 「こわいの?」と リリーちゃん。「とっても すてきな なかまだよ」と チョンプロ。「はなれて、ふねの うえから みようね。」 |
 | 21 | バスの なかで みんな うとうと。でも チョンプロは いそがしい。おって、ねじって、むすんで… なにを つくって いるのかな? |
