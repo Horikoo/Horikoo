@@ -310,3 +310,10 @@ Perfect for bedtime, family trips to Guam, and every little ocean lover!
 - [x] 일본어판 원고 · 소개글
 - [ ] 캐릭터 시트 생성 → 페이지별 삽화 생성
 - [ ] 레이아웃(Canva 등) → 전자책·종이책 업로드
+
+---
+
+## 8. 삽화 진행 기록
+- 완료: 1p (v2), 2p (v1), 3p (v1), 4p (v1) → `art/pages/`
+- 대기: 5p — Canva AI 크레딧 소진으로 실패. 크레딧 충전 후 또는 나노 바나나(GEMINI_API_KEY)로 생성 예정
+- 참고 이미지(Canva media id): 크루 시트 v2 `MAHZ-hYu1Uo` / 아이들 `MAHZ-ulhZtc` / 부모님 `MAHZ-vM4DJo`
