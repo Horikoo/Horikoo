@@ -19,6 +19,7 @@ Pro Cheon: a friendly Korean adult dolphin tour guide: very short buzz-cut black
 - 기준 캐릭터 시트: `art/pro-cheon-character-sheet-v3.png` (확정) / 원본 캐릭터: `art/pro-cheon-original-character.png`
 
 - 배 위: + 주황색 구명조끼
+- ⚠️ 팔 개수 규칙 (모든 페이지 프롬프트에 추가): "Pro Cheon has exactly TWO arms and TWO hands, no extra arms. The speaker hangs from a strap at the hip — no hand holds it." 한 손은 마이크, 다른 한 손은 손 흔들기/가리키기/물건 들기 중 하나만
 - 버스·항구·배 위: 마이크로 말하는 모습이 기본 (10p '쉿' 장면만 마이크를 내리고 속삭임)
 - 스노클링: 스피커는 배에 두고, 모자 벗고, 선글라스 대신 스노클 마스크 (흰색 유니폼 셔츠는 그대로)
 - 야자잎 공예: 선글라스를 모자 위로 올려 눈이 보이게
