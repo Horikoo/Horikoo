@@ -2,7 +2,8 @@
 
 - 대상: 3~5세 / 판형: 8.5×8.5인치 정사각형, 32페이지 (본문 24p + 앞뒤 구성)
 - 언어판: 영어 ✅ / 한국어 ✅ / 일본어 ✅
-- 배 이름: **Kept Pool** (켑트풀 호) / 선장: **Captain Tommyboy** (토미보이 선장님)
+- 배 이름: **Blue Cruise** (블루 크루즈 호 / ブルークルーズごう) — 실제 업체명 '파란크루즈'는 사용하지 않고 이름을 바꿈
+- 선장: **Captain Tommyboy** (토미보이 선장님) / 크루: **Pool** (풀 / プール)
 - 반복 문장: "Safety first, fun next!" / "Look, look! What do you see?" / "Splish, splash, here we go!"
 
 ---
@@ -77,10 +78,10 @@ Create a children's picture-book character reference sheet of Pro Cheon, based o
 - EN: "Stop here!" says Pro Cheon. "This is Emerald Valley!" The water is green like a jewel. "Everybody, smile!" Click!
 - KO: "여기서 잠깐!" 천프로가 말했어요. "여기는 에메랄드 밸리예요!" 물빛이 보석처럼 초록초록해요. "모두 웃어요, 김치~!" 찰칵!
 
-### Page 6 — 블록: PRO CHEON, CAPTAIN, KIDS / 여백: 위쪽
-- 장면: Sunny harbor with a white tour boat. Pro Cheon gestures toward Captain Tommyboy, who waves a big hand from the boat. Children wave back.
-- EN: At the harbor, a big white boat is waiting. "This is our boat, the Kept Pool!" says Pro Cheon. "And meet Captain Tommyboy!" Captain Tommyboy waves a big, big hand. "Ahoy, explorers!"
-- KO: 항구에서 커다란 하얀 배가 기다리고 있어요. "우리 배, 켑트풀 호예요!" 천프로가 말했어요. "그리고 토미보이 선장님이에요!" 선장님이 커다란 손을 흔들어요. "어서 와요, 탐험대!"
+### Page 6 — 블록: PRO CHEON, CAPTAIN, POOL, KIDS / 여백: 위쪽
+- 장면: Sunny harbor with a white tour boat. Pro Cheon gestures toward Captain Tommyboy, who waves a big hand from the boat. Children wave back. Pool, the curly-haired crew member, stands beside the captain waving with both hands.
+- EN: At the harbor, a big white boat is waiting. "This is our boat, the Blue Cruise!" says Pro Cheon. "Meet Captain Tommyboy and our friend Pool!" Captain Tommyboy and Pool wave big, big hands. "Ahoy, explorers!"
+- KO: 항구에서 커다란 하얀 배가 기다리고 있어요. "우리 배, 블루 크루즈 호예요!" 천프로가 말했어요. "토미보이 선장님과 우리 친구 풀이에요!" 선장님과 풀이 커다란 손을 흔들어요. "어서 와요, 탐험대!"
 
 ### Page 7 — 블록: PRO CHEON, KIDS, BOAT / 여백: 아래쪽
 - 장면: On the dock, Pro Cheon helps Kenta buckle an orange life vest. Mina and Lily listen carefully with their vests on. A friendly safety moment.
@@ -112,8 +113,8 @@ Create a children's picture-book character reference sheet of Pro Cheon, based o
 - EN: The dolphins jump and spin and play. We don't touch. We don't chase. We watch and wave. "Hello, dolphins!"
 - KO: 돌고래들이 폴짝폴짝 뛰고 빙글빙글 돌며 놀아요. 만지지 않아요. 쫓아가지 않아요. 바라보며 손만 흔들어요. "안녕, 돌고래야!"
 
-### Page 13 — 블록: PRO CHEON, KIDS / 여백: 위쪽 하늘
-- 장면: Snorkel area, clear shallow water. Pro Cheon is already in the water wearing a snorkel mask instead of the cap and sunglasses, holding a floating ring. Children in life vests and masks hold the ring.
+### Page 13 — 블록: PRO CHEON, POOL, KIDS / 여백: 위쪽 하늘
+- 장면: Snorkel area, clear shallow water. Pro Cheon is already in the water wearing a snorkel mask instead of the cap and sunglasses, holding a floating ring. Children in life vests and masks hold the ring. Pool watches from the boat's edge holding a rescue float, ready to help.
 - EN: Time to snorkel! Splash! Pro Cheon goes in first. "Hold the ring. I'm right here!"
 - KO: 스노클링 시간이에요! 풍덩! 천프로가 먼저 들어가요. "튜브를 꼭 잡아요. 내가 바로 옆에 있어요!"
 
@@ -201,7 +202,7 @@ Create a children's picture-book character reference sheet of Pro Cheon, based o
 ### 영어판 소개글
 **Splish, splash, here we go!**
 
-Pro Cheon is the happiest tour guide in Guam! Today, Mina, Kenta, and Lily join Pro Cheon for a full day of ocean adventure. They ride the big bus past waving palm trees, take photos at sparkling Emerald Valley, and climb aboard the boat *Kept Pool* with Captain Tommyboy.
+Pro Cheon is the happiest tour guide in Guam! Today, Mina, Kenta, and Lily join Pro Cheon for a full day of ocean adventure. They ride the big bus past waving palm trees, take photos at sparkling Emerald Valley, and climb aboard the boat *Blue Cruise* with Captain Tommyboy and crew member Pool.
 
 Out at sea, surprises are everywhere — flying fish, jumping dolphins, rainbow-colored fish, a peeking sea turtle, and even sharks and stingrays gliding below. And at the end of the day, Pro Cheon has one more special gift…
 
@@ -215,7 +216,7 @@ Perfect for bedtime, family trips to Guam, and every little ocean lover!
 ### 한국어판 소개글
 **첨벙첨벙, 출발!**
 
-괌에서 가장 신나는 가이드, 천프로와 함께하는 하루! 미나, 켄타, 릴리는 커다란 버스를 타고 야자나무 길을 달려, 보석처럼 빛나는 에메랄드 밸리에서 사진을 찍고, 토미보이 선장님의 켑트풀 호에 올라탑니다.
+괌에서 가장 신나는 가이드, 천프로와 함께하는 하루! 미나, 켄타, 릴리는 커다란 버스를 타고 야자나무 길을 달려, 보석처럼 빛나는 에메랄드 밸리에서 사진을 찍고, 토미보이 선장님과 크루 풀이 기다리는 블루 크루즈 호에 올라탑니다.
 
 바다 위에는 놀라운 일이 가득해요. 하늘을 나는 날치, 폴짝 뛰는 돌고래, 무지개 같은 열대어, 고개를 쏙 내민 바다거북, 그리고 배 아래를 지나가는 상어와 가오리까지! 하루의 끝에는 천프로가 준비한 특별한 선물이 기다리고 있어요.
 
@@ -238,7 +239,7 @@ Perfect for bedtime, family trips to Guam, and every little ocean lover!
 **제목:** 『チョンプロと いっしょの いちにち 〜グアムの イルカ だいぼうけん〜』
 
 **표기 원칙:** 3~5세용이라 히라가나 위주 + 외래어는 가타카나, 한자 없음. 일본 그림책 관례대로 띄어쓰기(分かち書き)를 사용.
-**이름:** 천프로 = チョンプロ / 선장 = トミーボーイせんちょう / 배 = ケプトプールごう / 아이들 = ミナちゃん・ケンタくん・リリーちゃん
+**이름:** 천프로 = チョンプロ / 선장 = トミーボーイせんちょう / 배 = ブルークルーズごう / 크루 = プール / 아이들 = ミナちゃん・ケンタくん・リリーちゃん
 **반복 문장:** 「みて みて! なにが みえるかな?」/「ザブーン、しゅっぱーつ!」/「あんぜんが いちばん!」「たのしいのは そのあと!」
 
 | P | 日本語 |
@@ -248,7 +249,7 @@ Perfect for bedtime, family trips to Guam, and every little ocean lover!
 | 3 | ピンクの みずぎの ミナちゃん。きいろい ぼうしの ケンタくん。くるくる かみの リリーちゃん。きょうは みんな うみの たんけんたい! |
 | 4 | まどの そとで ヤシのきが ゆらゆら こんにちは。うみは きらきら ひかってる。 |
 | 5 | 「ここで ちょっと ストップ!」と チョンプロ。「ここは エメラルドバレーだよ!」 みずが ほうせきみたいな みどりいろ。「みんな、はい チーズ!」 パシャッ! |
-| 6 | みなとで おおきな しろい ふねが まっていたよ。「これが みんなの ふね、ケプトプールごう!」と チョンプロ。「それから、トミーボーイせんちょう!」 せんちょうさんが おおきな てを ふって「ようこそ、たんけんたい!」 |
+| 6 | みなとで おおきな しろい ふねが まっていたよ。「これが みんなの ふね、ブルークルーズごう!」と チョンプロ。「それから、トミーボーイせんちょうと なかまの プール!」 せんちょうさんと プールが おおきな てを ふって「ようこそ、たんけんたい!」 |
 | 7 | ライフジャケットを きて、カチッ! てすりを しっかり にぎって、せんちょうさんの おはなしを よく きこうね。「あんぜんが いちばん!」と チョンプロ。「たのしいのは そのあと!」と こどもたち。 |
 | 8 | ブルルン! ふねが あおい うみを はしるよ。ザブーン、しゅっぱーつ! |
 | 9 | みて みて! なにが みえるかな? さかなが… とんでる?! ビューン! トビウオが なみの うえを とんでいくよ。 |
@@ -277,7 +278,7 @@ Perfect for bedtime, family trips to Guam, and every little ocean lover!
 **KDP 소개글 (日本語):**
 **ザブーン、しゅっぱーつ!**
 
-グアムで いちばん げんきな ガイド、チョンプロと すごす とくべつな いちにち! ミナちゃん、ケンタくん、リリーちゃんは おおきな バスで ヤシのきの みちを はしり、ほうせきのように かがやく エメラルドバレーで しゃしんを とって、トミーボーイせんちょうの ケプトプールごうに のりこみます。
+グアムで いちばん げんきな ガイド、チョンプロと すごす とくべつな いちにち! ミナちゃん、ケンタくん、リリーちゃんは おおきな バスで ヤシのきの みちを はしり、ほうせきのように かがやく エメラルドバレーで しゃしんを とって、トミーボーイせんちょうと なかまの プールが まつ ブルークルーズごうに のりこみます。
 
 うみの うえは びっくりが いっぱい。そらを とぶ トビウオ、ジャンプする イルカ、にじいろの さかな、かおを だす ウミガメ、そして ふねの したを とおる サメや エイまで! いちにちの さいごには、チョンプロから すてきな プレゼントも…。
 
