@@ -43,6 +43,14 @@ Mina: 5-year-old Korean girl, black hair in two pigtails with pink ties, pink sw
 Kenta: 4-year-old Japanese boy, short black hair, yellow bucket hat, green swim shirt, blue shorts.
 Lily: 5-year-old girl, curly light-brown hair, freckles, light-blue swimsuit.
 
+**[PARENTS]** (세 가족이 아이와 함께 투어에 참가 — 투어 장면에는 기본으로 부모님도 함께 등장)
+Mina's family (Korean): mom with a short black bob, wide-brim straw sun hat, coral-pink sundress; dad with neat short black hair, black-framed glasses, white polo shirt, beige shorts, camera strap around the neck.
+Kenta's family (Japanese): mom with a long black ponytail, white bucket hat, mint-green t-shirt and long light skirt; dad, slim with short black hair, light-blue linen shirt, navy shorts, small backpack.
+Lily's family (American): mom with long wavy blonde hair, round sunglasses on her head, yellow floral sundress; dad, tall with short brown hair and short brown beard, green Hawaiian-style shirt, khaki shorts, freckles.
+
+- 부모님 시트: `art/parents-character-sheet-v1.png`
+- 장면 규칙: 아이들이 나오는 투어 장면(2, 5~9, 11~12, 15~20, 22~23p)에는 부모님도 뒤쪽이나 옆에 함께 그림. 스노클링(13~14p)은 부모님이 아이 곁에서 함께 떠 있음. 24p(잠자리)는 미나 엄마가 이불을 덮어 주는 모습 가능.
+
 **[BOAT]**
 Everyone wears orange life vests on the boat. A white tour boat with a blue stripe, with no name or letters painted on it.
 
