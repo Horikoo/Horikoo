@@ -22,7 +22,9 @@ Pro Cheon: a friendly Korean adult dolphin tour guide: very short buzz-cut black
 - 야자잎 공예: 선글라스를 모자 위로 올려 눈이 보이게
 
 **[CAPTAIN]**
-Captain Tommyboy: a friendly boat captain with a short gray beard, white captain's hat, light-blue short-sleeve shirt, khaki shorts, warm laugh lines.
+Captain Tommyboy: a friendly boat captain in Guam: short black hair, a thick dark mustache with light stubble, warm brown sun-tanned skin, big sturdy heavyset build, huge cheerful laughing smile. Wears a dark gray baseball cap and wraparound mirrored sport sunglasses, a plain bright red short-sleeve t-shirt, black-and-white striped board shorts, and flip-flops.
+
+- 기준 캐릭터 시트: `art/captain-tommyboy-character-sheet-v1.png`
 
 **[KIDS]**
 Mina: 5-year-old Korean girl, black hair in two pigtails with pink ties, pink swimsuit with white polka dots.
@@ -67,9 +69,9 @@ Create a children's picture-book character reference sheet of Pro Cheon, based o
 - KO: "여기서 잠깐!" 천프로가 말했어요. "여기는 에메랄드 밸리예요!" 물빛이 보석처럼 초록초록해요. "모두 웃어요, 김치~!" 찰칵!
 
 ### Page 6 — 블록: PRO CHEON, CAPTAIN, KIDS / 여백: 위쪽
-- 장면: Sunny harbor with a white tour boat. Pro Cheon gestures toward Captain Tommyboy, who waves a white hat. Children wave back.
-- EN: At the harbor, a big white boat is waiting. "This is our boat, the Kept Pool!" says Pro Cheon. "And meet Captain Tommyboy!" Captain Tommyboy waves a big white hat. "Ahoy, explorers!"
-- KO: 항구에서 커다란 하얀 배가 기다리고 있어요. "우리 배, 켑트풀 호예요!" 천프로가 말했어요. "그리고 토미보이 선장님이에요!" 선장님이 하얀 모자를 흔들어요. "어서 와요, 탐험대!"
+- 장면: Sunny harbor with a white tour boat. Pro Cheon gestures toward Captain Tommyboy, who waves a big hand from the boat. Children wave back.
+- EN: At the harbor, a big white boat is waiting. "This is our boat, the Kept Pool!" says Pro Cheon. "And meet Captain Tommyboy!" Captain Tommyboy waves a big, big hand. "Ahoy, explorers!"
+- KO: 항구에서 커다란 하얀 배가 기다리고 있어요. "우리 배, 켑트풀 호예요!" 천프로가 말했어요. "그리고 토미보이 선장님이에요!" 선장님이 커다란 손을 흔들어요. "어서 와요, 탐험대!"
 
 ### Page 7 — 블록: PRO CHEON, KIDS, BOAT / 여백: 아래쪽
 - 장면: On the dock, Pro Cheon helps Kenta buckle an orange life vest. Mina and Lily listen carefully with their vests on. A friendly safety moment.
@@ -237,7 +239,7 @@ Perfect for bedtime, family trips to Guam, and every little ocean lover!
 | 3 | ピンクの みずぎの ミナちゃん。きいろい ぼうしの ケンタくん。くるくる かみの リリーちゃん。きょうは みんな うみの たんけんたい! |
 | 4 | まどの そとで ヤシのきが ゆらゆら こんにちは。うみは きらきら ひかってる。 |
 | 5 | 「ここで ちょっと ストップ!」と チョンプロ。「ここは エメラルドバレーだよ!」 みずが ほうせきみたいな みどりいろ。「みんな、はい チーズ!」 パシャッ! |
-| 6 | みなとで おおきな しろい ふねが まっていたよ。「これが みんなの ふね、ケプトプールごう!」と チョンプロ。「それから、トミーボーイせんちょう!」 せんちょうさんが しろい ぼうしを ふって「ようこそ、たんけんたい!」 |
+| 6 | みなとで おおきな しろい ふねが まっていたよ。「これが みんなの ふね、ケプトプールごう!」と チョンプロ。「それから、トミーボーイせんちょう!」 せんちょうさんが おおきな てを ふって「ようこそ、たんけんたい!」 |
 | 7 | ライフジャケットを きて、カチッ! てすりを しっかり にぎって、せんちょうさんの おはなしを よく きこうね。「あんぜんが いちばん!」と チョンプロ。「たのしいのは そのあと!」と こどもたち。 |
 | 8 | ブルルン! ふねが あおい うみを はしるよ。ザブーン、しゅっぱーつ! |
 | 9 | みて みて! なにが みえるかな? さかなが… とんでる?! ビューン! トビウオが なみの うえを とんでいくよ。 |
