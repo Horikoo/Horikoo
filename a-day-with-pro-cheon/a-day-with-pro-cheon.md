@@ -14,12 +14,13 @@
 Square children's picture-book illustration, bright and warm colors, soft rounded shapes, gentle watercolor-and-gouache texture, expressive lovable characters, tropical Guam setting with turquoise water and sunshine. Ages 3–5. No text, no letters, no logos, no brand patterns. Leave clean empty space for text where noted.
 
 **[PRO CHEON]**
-Pro Cheon: a friendly Korean adult dolphin tour guide: very short buzz-cut black hair, thick dark bold eyebrows, confident kind eyes, strong square jaw, sun-tanned skin, muscular athletic build like a former fighter. Both arms fully covered with traditional Asian-style sleeve tattoos of clouds and waves in soft brown ink. Huge warm open toothy smile. Wears a light gray baseball cap with a dark brim and round black-framed sunglasses with blue mirrored lenses, the crew uniform (white short-sleeve crew shirt with a small teal dolphin logo, navy board shorts, black water shoes), plus a yellow waterproof bag.
+Pro Cheon: a friendly Korean adult dolphin tour guide: very short buzz-cut black hair, thick dark bold eyebrows, confident kind eyes, strong square jaw, sun-tanned skin, muscular athletic build like a former fighter. Both arms fully covered with traditional Asian-style sleeve tattoos of clouds and waves in soft brown ink. Huge warm open toothy smile. Wears a light gray baseball cap with a dark brim and round black-framed sunglasses with blue mirrored lenses, the crew uniform (white short-sleeve crew shirt with a small teal dolphin logo, navy board shorts, black water shoes). Always carries a small yellow portable tour-guide speaker on a shoulder strap at the hip, with a handheld microphone connected to it (Pro Cheon talks to guests through the mic).
 
 - 기준 캐릭터 시트: `art/pro-cheon-character-sheet-v3.png` (확정) / 원본 캐릭터: `art/pro-cheon-original-character.png`
 
 - 배 위: + 주황색 구명조끼
-- 스노클링: 모자 벗고, 선글라스 대신 스노클 마스크 (흰색 유니폼 셔츠는 그대로)
+- 버스·항구·배 위: 마이크로 말하는 모습이 기본 (10p '쉿' 장면만 마이크를 내리고 속삭임)
+- 스노클링: 스피커는 배에 두고, 모자 벗고, 선글라스 대신 스노클 마스크 (흰색 유니폼 셔츠는 그대로)
 - 야자잎 공예: 선글라스를 모자 위로 올려 눈이 보이게
 
 **[CAPTAIN]**
@@ -28,13 +29,14 @@ Captain Tommyboy: a friendly boat captain in Guam: short black hair, a thick dar
 - 기준 캐릭터 시트: `art/captain-tommyboy-character-sheet-v1.png`
 
 **[POOH]**
-Pooh: a friendly boat crew member: shoulder-length curly brown hair with sun-bleached golden tips, short dark goatee, warm brown sun-tanned skin, lean surfer build, huge joyful grin that squeezes the eyes shut, no hat. Wears the crew uniform (white short-sleeve crew shirt with a small teal dolphin logo, navy board shorts, black water shoes).
+Pooh: a friendly boat crew member: shoulder-length curly brown hair with sun-bleached golden tips, short dark goatee with a few gray hairs, warm brown sun-tanned skin, lean surfer build, huge bright joyful grin that squeezes the eyes shut, no hat (so the curly hair always shows). Wears the crew uniform (white short-sleeve crew shirt with a small teal dolphin logo, navy board shorts, black water shoes).
 
 **[UNIFORM]** (크루 3명 공통, 흰색 유니폼)
 All crew members (Pro Cheon, Captain Tommyboy, Pooh) wear the same uniform: white short-sleeve crew shirt with a small teal dolphin logo on the chest, navy board shorts, black water shoes.
 
-- 크루 단체 시트: `art/crew-white-uniform-sheet-v1.png`
-- 구분 포인트: 천프로 = 회색 캡 + 둥근 파란 미러 선글라스 + 팔 문신 + 노란 가방 / Tommy = 어두운 캡 + 스포츠 선글라스 + 콧수염 + 큰 체격 / Pooh = 모자 없음 + 곱슬머리 + 턱수염
+- 크루 단체 시트: `art/crew-white-uniform-sheet-v2.png` (v2 = 마이크 스피커 반영, 확정)
+- 아이들 시트: `art/kids-character-sheet-v1.png`
+- 구분 포인트: 천프로 = 회색 캡 + 둥근 파란 미러 선글라스 + 팔 문신 + 노란 마이크 스피커 / Tommy = 어두운 캡 + 스포츠 선글라스 + 콧수염 + 큰 체격 / Pooh = 모자 없음 + 곱슬머리 + 턱수염
 
 **[KIDS]**
 Mina: 5-year-old Korean girl, black hair in two pigtails with pink ties, pink swimsuit with white polka dots.
