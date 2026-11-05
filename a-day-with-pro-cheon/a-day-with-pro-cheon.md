@@ -316,5 +316,7 @@ Perfect for bedtime, family trips to Guam, and every little ocean lover!
 ## 8. 삽화 진행 기록
 - 완료: 1p (v2), 2p (v1), 3p (v1), 4p (v1), 5p (v1, 부모님은 미나네만 등장), 6p (v1) → `art/pages/`
 - 다음: 7p부터 (7·8p는 Canva 크레딧 소진으로 실패)
+- 매일 자동 진행: 괌 시간 오전 10:17 예약 작업 (Canva 1~2장씩)
+- Gemini 앱 수동 생성용 프롬프트: `gemini-app-prompts.md` (7~10p)
 - 나노 바나나(Gemini API): 무료 등급은 이미지 모델 한도 0 → 결제 연결 필요
 - 참고 이미지(Canva media id): 크루 시트 v2 `MAHZ-hYu1Uo` / 아이들 `MAHZ-ulhZtc` / 부모님 `MAHZ-vM4DJo`
