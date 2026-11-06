@@ -319,4 +319,5 @@ Perfect for bedtime, family trips to Guam, and every little ocean lover!
 - 매일 자동 진행: 괌 시간 오전 10:17 예약 작업 (Canva 1~2장씩)
 - Gemini 앱 수동 생성용 프롬프트: `gemini-app-prompts.md` (7~10p)
 - 나노 바나나(Gemini API): 무료 등급은 이미지 모델 한도 0 → 결제 연결 필요
+- ⚠️ `art/` 폴더의 Canva 그림은 200×200 미리보기뿐임. 인쇄용 원본(고화질)은 Canva 프로젝트에 있음 → 원본 링크(media id): 1p `MAHZ-k61Yd8` / 2p `MAHZ-jKgR70` / 3p `MAHZ-q7FGtM` / 4p `MAHZ-uty0iY` / 5p `MAHaAoUbYG4` / 6p `MAHaAjLaVV4` (https://www.canva.com/M/<id>)
 - 참고 이미지(Canva media id): 크루 시트 v2 `MAHZ-hYu1Uo` / 아이들 `MAHZ-ulhZtc` / 부모님 `MAHZ-vM4DJo`
