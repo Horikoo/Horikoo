@@ -1,0 +1,37 @@
+{
+  "story_id": "Hachiko the Akita, Shibuya Station 1925-1935",
+  "title": "10년을 기다린 개",
+  "youtube_title": "주인이 죽은 줄 모르고 10년을 기다린 개",
+  "hook": "10년을 기다린 개가 있습니다.",
+  "scenes": [
+    {
+      "narration": "하치는 매일 역에서 주인을 맞았습니다.",
+      "image_keywords": "old train station evening",
+      "tone": "dusk"
+    },
+    {
+      "narration": "어느 날, 주인이 세상을 떠났습니다.",
+      "image_keywords": "empty street rain night",
+      "tone": "rain"
+    },
+    {
+      "narration": "그래도 하치는 역으로 나갔습니다.",
+      "image_keywords": "lonely dog waiting",
+      "tone": "night"
+    }
+  ],
+  "ending": "10년 동안, 매일 저녁.",
+  "caption": "돌아오지 않는 주인을 10년 가까이 기다린 충견 하치코의 실화입니다.",
+  "hashtags": [
+    "감동실화",
+    "하치코",
+    "충견",
+    "실화",
+    "truestory",
+    "hachiko"
+  ],
+  "sources": [
+    "시부야역 하치코 동상 (1934 건립)",
+    "도쿄대학 농학부 우에노 히데사부로 교수 기록"
+  ]
+}
