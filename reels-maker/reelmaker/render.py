@@ -19,6 +19,12 @@ SCENE_GAP = 0.9      # longer pause when the picture changes
 TAIL = 2.8           # music-only ending
 
 
+def use_short_pace() -> None:
+    """Tighter timing for 15-second Shorts (no time to waste between sentences)."""
+    global LEAD_IN, GAP, SCENE_GAP, TAIL
+    LEAD_IN, GAP, SCENE_GAP, TAIL = 0.2, 0.18, 0.3, 1.2
+
+
 def ensure_fonts() -> Path:
     FONT_DIR.mkdir(parents=True, exist_ok=True)
     for name, url in FONTS.items():

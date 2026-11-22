@@ -123,3 +123,78 @@ def validate_story(story: dict) -> dict:
     story.setdefault("hashtags", [])
     story.setdefault("sources", [])
     return story
+
+
+# ------------------------------------------------------------------ 15-second YouTube Shorts
+# Different kinds of true stories, rotated so the channel doesn't feel repetitive.
+SHORT_CATEGORIES = [
+    "a loyal animal (dog, cat, horse, dolphin, bird...) and the people it loved",
+    "a stranger's unexpected kindness that changed someone's life",
+    "a parent's or grandparent's sacrifice for their child",
+    "a long-lost family reunion after many years",
+    "an ordinary person who saved lives (rescue, firefighter, nurse, passer-by)",
+    "an athlete's moment of sportsmanship or comeback",
+    "a teacher and a student",
+    "love that lasted a lifetime (old couples, promises kept)",
+    "a child's act of kindness that moved a whole town or country",
+    "humanity and compassion during war or disaster",
+    "a doctor, scientist or inventor who helped people without seeking money or fame",
+    "a famous person's little-known kind act (only if well documented)",
+]
+
+SHORT_SYSTEM = SYSTEM + """
+
+THIS IS A 15-SECOND YOUTUBE SHORT. Extreme brevity:
+- hook: exactly 1 short sentence that grabs attention in the first 2 seconds.
+- scenes: exactly 3 scenes, each exactly 1 short sentence.
+- ending: 1 short sentence that gives the emotional payoff (the twist / the touching truth).
+- The whole narration (hook + scenes + ending) must be about {chars} {unit} in total. Never longer.
+- title: max 14 characters, curiosity-driven (it is shown on screen the whole time).
+- youtube_title: max 60 characters, emotional, makes people tap. Do not add #shorts (added automatically).
+- story_id: a short English identifier of the real story, e.g. "Hachiko the Akita, Shibuya 1925".
+- Pick a DIFFERENT real story from every story_id listed as already used."""
+
+SHORT_SCHEMA = json.loads(json.dumps(SCHEMA))
+SHORT_SCHEMA["properties"]["story_id"] = {"type": "string"}
+SHORT_SCHEMA["properties"]["youtube_title"] = {"type": "string"}
+SHORT_SCHEMA["required"] += ["story_id", "youtube_title"]
+
+# total narration length for 15 seconds (speech ~12s + short pauses + music tail)
+SHORT_CHARS = {"ko": 75, "ja": 85, "en": 38}
+
+
+def _ask_claude(system: str, prompt: str, schema: dict, max_tokens: int) -> dict:
+    import anthropic
+
+    client = anthropic.Anthropic()
+    with client.beta.messages.stream(
+        model=MODEL,
+        max_tokens=max_tokens,
+        system=system,
+        messages=[{"role": "user", "content": prompt}],
+        output_config={"effort": "high", "format": {"type": "json_schema", "schema": schema}},
+        betas=["server-side-fallback-2026-07-01"],
+        fallbacks="default",
+    ) as stream:
+        response = stream.get_final_message()
+    if response.stop_reason == "refusal":
+        raise RuntimeError("Claude declined this request. Try again or change the category.")
+    if response.stop_reason == "max_tokens":
+        raise RuntimeError("The script was cut off.")
+    text = next(b.text for b in response.content if b.type == "text")
+    return json.loads(text)
+
+
+def generate_short(lang: str, used_ids: list[str], category: str, topic: str = "") -> dict:
+    unit = "words" if lang == "en" else "characters (including spaces)"
+    chars = SHORT_CHARS.get(lang, 62)
+    used = "\n".join(f"- {u}" for u in used_ids[-400:]) or "(none yet)"
+    prompt = (
+        f"Write one 15-second touching TRUE story Short.\n"
+        f"Story type for today: {topic or category}\n"
+        f"Language of narration, title, youtube_title, caption: {LANG_NAMES.get(lang, lang)}\n"
+        f"Hashtags: 5-8, without the # sign, mixing {LANG_NAMES.get(lang, lang)} and English.\n\n"
+        f"Stories already used on this channel (do NOT repeat any of them):\n{used}"
+    )
+    print(f"  Asking Claude ({MODEL}) for a 15-second story: {topic or category}")
+    return _ask_claude(SHORT_SYSTEM.format(chars=chars, unit=unit), prompt, SHORT_SCHEMA, 16000)

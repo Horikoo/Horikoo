@@ -111,16 +111,89 @@ python make_reel.py --story samples/hachiko_ko.json --tts none
    직접 음악을 넣을 때는 사용 허가가 있는 음원만 쓰세요.
 4. **AI 음성 표시** — 인스타그램/유튜브는 AI 생성 콘텐츠 표시(라벨)를 권장합니다. 업로드할 때 "AI 정보" 옵션을 켜 두면 안전합니다.
 
+---
+
+## ⏱ 유튜브 쇼츠 자동 업로드 (15초 감동 실화, 하루 2개)
+
+`make_short.py` + `.github/workflows/daily-shorts.yml` 이 **매일 11:47, 18:47 (한국 시간)** 에
+15초짜리 감동 실화 쇼츠를 1개씩 만들어 유튜브에 자동으로 올립니다.
+
+- 대본: Claude가 실제로 기록된 실화만 골라 15초 분량(훅 1문장 + 3장면 + 마무리)으로 작성
+- 같은 이야기 반복 방지: 올린 이야기는 `shorts_history.json` 에 자동 기록
+- 이야기 종류 자동 순환: 동물의 충성, 낯선 사람의 친절, 가족의 희생, 재회, 구조 영웅 등 12가지
+- 설명란: 캡션 + 출처 + "AI 내레이션" 안내 + 해시태그 자동 작성, 유튜브 "AI 생성 콘텐츠" 표시도 자동으로 켬
+- 업로드하지 않을 때도 영상은 Actions 실행 기록의 **Artifacts** 에서 7일간 다운로드 가능
+
+### 처음 한 번만 하는 설정 (약 20~30분)
+
+**1) Google Cloud 에서 유튜브 API 켜기**
+1. https://console.cloud.google.com 접속 → 상단에서 **새 프로젝트** 만들기 (이름 예: `shorts-bot`)
+2. **API 및 서비스 → 라이브러리** → `YouTube Data API v3` 검색 → **사용**
+3. **API 및 서비스 → OAuth 동의 화면** → User Type **외부** → 앱 이름/이메일만 넣고 저장
+   → **테스트 사용자**에 내 Google 계정 추가
+4. ⚠️ 같은 화면에서 **앱 게시 (In production)** 버튼을 눌러 주세요.
+   "테스트" 상태로 두면 연결이 **7일마다 끊겨서** 자동 업로드가 멈춥니다.
+   (개인용이라 "확인되지 않은 앱" 경고가 떠도 괜찮습니다.)
+5. **사용자 인증 정보 → 사용자 인증 정보 만들기 → OAuth 클라이언트 ID → 애플리케이션 유형: 데스크톱 앱**
+   → 만든 뒤 **JSON 다운로드** → 파일 이름을 `client_secret.json` 으로 변경
+
+**2) 내 컴퓨터에서 채널 연결 (딱 한 번)**
+```bash
+pip install google-auth-oauthlib
+python get_youtube_token.py client_secret.json
+```
+브라우저가 열리면 **쇼츠를 올릴 채널의 구글 계정**으로 로그인 → "확인되지 않은 앱" → 고급 → 이동 → 허용.
+화면에 3개의 값이 출력됩니다. (`client_secret.json` 과 출력된 값은 절대 저장소에 올리지 마세요.)
+
+**3) GitHub 에 비밀값 등록**
+저장소 → **Settings → Secrets and variables → Actions → Secrets → New repository secret**
+
+| 이름 | 값 |
+|---|---|
+| `ANTHROPIC_API_KEY` | Claude API 키 (이미 등록했다면 그대로) |
+| `YT_CLIENT_ID` | 2번에서 출력된 값 |
+| `YT_CLIENT_SECRET` | 2번에서 출력된 값 |
+| `YT_REFRESH_TOKEN` | 2번에서 출력된 값 |
+| `PEXELS_API_KEY` | (선택) 실제 사진 배경 |
+
+(선택) **Variables** 탭에서 바꿀 수 있는 설정:
+`YT_PRIVACY` = `public` / `unlisted` / `private` (기본 public),
+`SHORTS_LANG` = `ko` / `ja` / `en`, `SHORTS_VOICE` = `ko-male` 등
+
+**4) 테스트**
+Actions → **Daily YouTube Shorts** → **Run workflow** (upload 에 `no` 를 넣으면 영상만 만들어 확인 가능)
+
+### ⚠️ 꼭 알아두세요 (쇼츠 자동화)
+1. **처음엔 "비공개"로만 올라갈 수 있습니다.** 구글은 새로 만든(검수 전) API 프로젝트로 올린 영상을
+   자동으로 비공개 처리합니다. 공개로 올리려면 Google 의 "YouTube API Services 감사(Audit)" 신청서를
+   제출해 승인받아야 합니다 (무료, 보통 몇 주). 승인 전에는 YouTube Studio 에서 직접 공개로 바꾸면 됩니다.
+2. **하루 할당량**: 기본 10,000 포인트, 업로드 1회 약 1,600 포인트 → 하루 2개는 충분합니다.
+3. **실화 확인**: AI는 실수할 수 있습니다. 설명란의 출처를 가끔 확인해 주세요.
+4. **수익화 정책**: 유튜브는 "반복적·대량 생산 콘텐츠"를 수익화에서 제외할 수 있습니다.
+   가끔 직접 찍은 영상이나 내 목소리 버전을 섞으면 채널 평가에 도움이 됩니다.
+5. 예약 실행(schedule)은 **기본 브랜치(main)** 에 이 파일이 있어야 동작합니다.
+
+```bash
+# 내 컴퓨터에서 직접 1개 만들기 (업로드 없이)
+python make_short.py --no-upload
+# API 키 없이 샘플로 테스트
+python make_short.py --story samples/short_hachiko_ko.json --no-upload
+```
+
 ## 🛠 구조 (개발자용)
 
 ```
 reels-maker/
 ├── make_reel.py          # 실행 파일 (전체 흐름)
+├── make_short.py         # 15초 쇼츠 1개 제작 + 유튜브 업로드
+├── get_youtube_token.py  # 유튜브 채널 연결 (처음 한 번)
+├── shorts_history.json   # 이미 올린 이야기 목록 (중복 방지)
 ├── reelmaker/
 │   ├── story.py          # 1. Claude 대본 생성
 │   ├── voice.py          # 2. 문장별 TTS
 │   ├── visuals.py        # 3. 배경 이미지
 │   ├── music.py          # 4. BGM 작곡 / 루프
+│   ├── youtube.py        # 6. 유튜브 업로드
 │   ├── render.py         # 5. 타임라인 · 자막(ASS) · 줌 효과 · 합성
 │   └── config.py         # 화면 크기, 폰트, 목소리, 색감 설정
 └── samples/hachiko_ko.json
