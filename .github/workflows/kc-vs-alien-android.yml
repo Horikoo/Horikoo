@@ -1,0 +1,76 @@
+name: KC vs Alien Android build
+
+# Builds the Android app in the cloud.
+# - Always: a test APK you can install on your own phone.
+# - When the signing secrets are set: a signed .aab to upload to Google Play.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'kc-vs-alien-app/**'
+      - '.github/workflows/kc-vs-alien-android.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      HAS_KEY: ${{ secrets.KC_KEYSTORE_BASE64 != '' }}
+      KC_VERSION_CODE: ${{ github.run_number }}
+      KC_VERSION_NAME: 1.0.${{ github.run_number }}
+    defaults:
+      run:
+        working-directory: kc-vs-alien-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: kc-vs-alien-app/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install packages
+        run: npm ci
+
+      - name: Copy the game into the Android project
+        run: npx cap sync android
+
+      - name: Build test APK
+        working-directory: kc-vs-alien-app/android
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+
+      - name: Upload test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: kc-vs-alien-test-apk
+          path: kc-vs-alien-app/android/app/build/outputs/apk/debug/*.apk
+
+      - name: Restore signing key
+        if: env.HAS_KEY == 'true'
+        run: echo "${{ secrets.KC_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/kc-upload.jks"
+
+      - name: Build signed Play Store bundle (.aab)
+        if: env.HAS_KEY == 'true'
+        working-directory: kc-vs-alien-app/android
+        env:
+          KC_KEYSTORE_PATH: ${{ runner.temp }}/kc-upload.jks
+          KC_KEYSTORE_PASSWORD: ${{ secrets.KC_KEYSTORE_PASSWORD }}
+          KC_KEY_ALIAS: ${{ secrets.KC_KEY_ALIAS }}
+          KC_KEY_PASSWORD: ${{ secrets.KC_KEY_PASSWORD }}
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: Upload Play Store bundle
+        if: env.HAS_KEY == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kc-vs-alien-play-store-aab
+          path: kc-vs-alien-app/android/app/build/outputs/bundle/release/*.aab
+
+      - name: Remove signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/kc-upload.jks"

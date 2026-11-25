@@ -1,0 +1,20 @@
+{
+  "name": "kc-vs-alien",
+  "version": "1.0.0",
+  "private": true,
+  "description": "KC vs Alien - an arcade shooting game",
+  "scripts": {
+    "sync": "cap sync",
+    "icons": "capacitor-assets generate --android --ios --iconBackgroundColor '#070b1f' --splashBackgroundColor '#070b1f'"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.6.2",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/core": "8.6.2",
+    "@capacitor/ios": "8.6.2"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "4.0.0",
+    "@capacitor/cli": "8.6.2"
+  }
+}
