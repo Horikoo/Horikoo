@@ -34,6 +34,20 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      - name: Check signing secrets (shows found/missing, never the values)
+        env:
+          S1: ${{ secrets.KC_KEYSTORE_BASE64 }}
+          S2: ${{ secrets.KC_KEYSTORE_PASSWORD }}
+          S3: ${{ secrets.KC_KEY_ALIAS }}
+          S4: ${{ secrets.KC_KEY_PASSWORD }}
+        run: |
+          for pair in "KC_KEYSTORE_BASE64:$S1" "KC_KEYSTORE_PASSWORD:$S2" "KC_KEY_ALIAS:$S3" "KC_KEY_PASSWORD:$S4"; do
+            name="${pair%%:*}"; val="${pair#*:}"
+            if [ -n "$val" ]; then echo "found    $name"; else echo "MISSING  $name"; fi
+          done
+          if [ -n "$S1" ]; then echo "::notice::Signing key found. The Play Store .aab will be built."
+          else echo "::warning::KC_KEYSTORE_BASE64 not found. Add it under Settings > Secrets and variables > Actions > Repository secrets."; fi
+
       - name: Install packages
         run: npm ci
 
