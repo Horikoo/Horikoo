@@ -314,7 +314,7 @@ Perfect for bedtime, family trips to Guam, and every little ocean lover!
 ---
 
 ## 8. 삽화 진행 기록
-- 완료: 1p (v2), 2p (v1), 3p (v1), 4p (v1), 5p (v1, 부모님은 미나네만 등장), 6p (v1), 7p (v1 후보, ImagineArt 2048px — 그림체가 반실사라 1~6p와 다름, 결정 필요) → `art/pages/`
+- 완료: 1p (v2), 2p (v1), 3p (v1), 4p (v1), 5p (v1, 부모님은 미나네만 등장), 6p (v1), 7p 보류 (ImagineArt 반실사 후보는 사용 안 함 — 사용자 결정: 기존 만화 그림체 유지, Canva 크레딧 재충전 후 다시 생성) → `art/pages/`
 - 다음: 7p부터 (7·8p는 Canva 크레딧 소진으로 실패)
 - 매일 자동 진행: 괌 시간 오전 10:17 예약 작업 (Canva 1~2장씩)
 - Gemini 앱 수동 생성용 프롬프트: `gemini-app-prompts.md` (7~10p)
