@@ -429,12 +429,12 @@ function startBgm(){
   const a=ac();if(!a)return;
   try{
     BGM.out=a.createGain();BGM.out.gain.value=.0001;BGM.out.connect(a.destination);
-    BGM.out.gain.linearRampToValueAtTime(.16,a.currentTime+1.2);
+    BGM.out.gain.linearRampToValueAtTime(.42,a.currentTime+1.2);
     // constant ball-rattle bed: looping noise through a metallic band-pass
     const len=a.sampleRate*2,buf=a.createBuffer(1,len,a.sampleRate),d=buf.getChannelData(0);
     for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(Math.random()<.04?1:.25);
     const src=a.createBufferSource(),bp=a.createBiquadFilter(),g=a.createGain();
-    src.buffer=buf;src.loop=true;bp.type='bandpass';bp.frequency.value=4200;bp.Q.value=1.4;g.gain.value=.22;
+    src.buffer=buf;src.loop=true;bp.type='bandpass';bp.frequency.value=4200;bp.Q.value=1.4;g.gain.value=.32;
     src.connect(bp).connect(g).connect(BGM.out);src.start();BGM.rattle=src;
     BGM.next=a.currentTime+.05;BGM.step=0;BGM.on=true;
     BGM.timer=setInterval(bgmSchedule,60);bgmSchedule();
