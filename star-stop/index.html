@@ -42,10 +42,13 @@
   .pay { margin:18px auto 0; max-width:640px; background:#f3e2b3; color:#3a1d00; border:4px solid var(--edge);
     border-radius:10px; padding:10px 12px; font-size:15px; }
   .pay h3 { margin:0 0 8px; font-size:14px; text-align:center; letter-spacing:1px; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:2px 14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:2px 14px; }
   .grid div { display:flex; justify-content:space-between; padding:3px 4px; border-bottom:1px dashed rgba(58,29,0,.25); }
   .pay b { color:#b0170c; }
   .rules { font-size:13px; line-height:1.55; margin-top:8px; }
+  .miniflag { display:inline-block; width:20px; height:13px; vertical-align:-1px; border:1px solid #0003;
+    background:linear-gradient(#0a3161,#0a3161) 0 0/45% 54% no-repeat,
+      repeating-linear-gradient(#c8102e 0 1px,#fff 1px 2px); }
 </style>
 </head>
 <body>
@@ -89,9 +92,18 @@
 <script>
 (() => {
   // ---------- symbols & pay values ----------
+  // Liberty characters (lowest → highest)
   const SYM = [
-    { e:'🍒', v:3 },  { e:'🍋', v:5 },  { e:'🍊', v:6 },  { e:'🍉', v:8 },  { e:'🔔', v:8 },
-    { e:'⭐', v:12 }, { e:'🍀', v:12 }, { e:'🦅', v:16 }, { e:'💎', v:16 }, { e:'7', v:18, seven:true },
+    { e:'🔔', v:3,  name:'Liberty Bell' },
+    { e:'🎆', v:5,  name:'Fireworks' },
+    { e:'🎩', v:6,  name:'Top Hat' },
+    { e:'📜', v:8,  name:'Declaration' },
+    { e:'🎖️', v:8,  name:'Medal' },
+    { e:'⭐', v:12, name:'Star' },
+    { e:'🔥', v:12, name:'Torch Flame' },
+    { e:'🦅', v:16, name:'Eagle' },
+    { e:'',   v:16, name:'Flag', flag:true },
+    { e:'🗽', v:18, name:'Lady Liberty' },
   ];
   const TRIPLES = [0, 4, 7, 9];  // these symbols appear as runs of 3 on every reel → 9 alike is possible
 
@@ -108,7 +120,7 @@
 
   // ---------- paytable ----------
   document.getElementById('paygrid').innerHTML = SYM.slice().reverse().map(s =>
-    `<div><span>${s.seven ? '<b style="font-size:17px">7</b>' : s.e} ×3</span><b>${s.v}</b></div>`).join('');
+    `<div><span>${s.flag ? '<span class="miniflag"></span>' : s.e} ${s.name}</span><b>${s.v}</b></div>`).join('');
 
   // ---------- blocks ----------
   const CELL = 240;
@@ -241,10 +253,20 @@
     const sym = SYM[s], cx = x + CELL / 2, cy = y + CELL / 2;
     ctx.fillStyle = '#fbf6ea'; ctx.fillRect(x + 6, y + 6, CELL - 12, CELL - 12);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    if (sym.seven) {
-      ctx.font = '900 170px Georgia,serif';
-      ctx.lineWidth = 10; ctx.strokeStyle = '#ffcf4a'; ctx.strokeText('7', cx, cy + 8);
-      ctx.fillStyle = '#d4231a'; ctx.fillText('7', cx, cy + 8);
+    if (sym.flag) {
+      // hand-drawn waving flag: 13 stripes + blue canton with stars
+      const fw = 176, fh = 116, fx = cx - fw / 2, fy = cy - fh / 2;
+      ctx.fillStyle = '#5a4a3a'; ctx.fillRect(fx - 10, fy - 14, 7, fh + 60);   // pole
+      for (let i = 0; i < 13; i++) {
+        ctx.fillStyle = i % 2 ? '#ffffff' : '#c8102e';
+        ctx.fillRect(fx, fy + i * fh / 13, fw, fh / 13 + .5);
+      }
+      ctx.fillStyle = '#0a3161'; ctx.fillRect(fx, fy, fw * .42, fh * 7 / 13);
+      ctx.fillStyle = '#fff';
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 5; c++) {
+        ctx.beginPath(); ctx.arc(fx + 9 + c * 14 + (r % 2) * 5, fy + 9 + r * 14, 3.4, 0, 7); ctx.fill();
+      }
+      ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 2; ctx.strokeRect(fx, fy, fw, fh);
     } else {
       ctx.font = '140px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
       ctx.fillText(sym.e, cx, cy + 8);
