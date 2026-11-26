@@ -5,131 +5,140 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Star Stop</title>
 <style>
-  :root { --bg:#10131f; --panel:#1b2140; --edge:#c9342c; --gold:#ffcf4a; --ink:#f4f1e8; --blue:#2c5cff; }
+  :root { --edge:#c9342c; --gold:#ffcf4a; --ink:#f4f1e8; }
   * { box-sizing:border-box; }
-  html,body { margin:0; min-height:100%; background:
-      repeating-linear-gradient(90deg,#0e1430 0 10px,#15204a 10px 20px); color:var(--ink);
+  html,body { margin:0; min-height:100%; color:var(--ink);
+    background:repeating-linear-gradient(90deg,#0e1430 0 10px,#15204a 10px 20px);
     font-family:system-ui,-apple-system,"Segoe UI",sans-serif; user-select:none; -webkit-user-select:none;
     touch-action:manipulation; }
-  .cab { max-width:760px; margin:0 auto; padding:16px; }
-  header { text-align:center; margin:4px 0 14px; }
-  h1 { margin:0; display:inline-block; padding:6px 28px; font-size:clamp(30px,7vw,48px); letter-spacing:3px;
+  .cab { max-width:1000px; margin:0 auto; padding:14px 16px 24px; }
+  header { text-align:center; margin:2px 0 12px; }
+  h1 { margin:0; display:inline-block; padding:6px 28px; font-size:clamp(28px,6vw,46px); letter-spacing:3px;
     color:#fff; background:linear-gradient(#e2493b,#9e1f17); border:4px solid var(--gold); border-radius:999px;
     text-shadow:0 3px 0 #5a0c06; box-shadow:0 0 24px rgba(255,207,74,.35); }
   .sub { font-size:13px; opacity:.7; margin-top:6px; }
-  .main { display:flex; gap:14px; justify-content:center; align-items:flex-start; flex-wrap:wrap; }
-  .screen { background:#000; border:6px solid var(--edge); border-radius:14px; padding:10px;
-    box-shadow:inset 0 0 0 3px #222, 0 10px 30px rgba(0,0,0,.5); }
-  canvas { display:block; width:min(86vw,360px); height:auto; aspect-ratio:1/1; border-radius:6px; }
-  .msg { min-height:28px; margin-top:8px; text-align:center; font-weight:800; color:var(--gold); font-size:18px; }
-  .pay { background:#f3e2b3; color:#3a1d00; border:4px solid var(--edge); border-radius:10px; padding:8px 10px;
-    min-width:170px; font-size:15px; }
-  .pay h3 { margin:0 0 6px; font-size:14px; text-align:center; letter-spacing:1px; }
-  .pay div { display:flex; justify-content:space-between; align-items:center; padding:3px 4px;
-    border-bottom:1px dashed rgba(58,29,0,.25); }
-  .pay div:last-child { border-bottom:0; }
-  .pay b { color:#b0170c; }
-  .pay .note { display:block; font-size:12px; line-height:1.35; padding-top:6px; }
-  .hud { display:flex; justify-content:center; gap:10px; margin:14px 0 10px; flex-wrap:wrap; }
+  .blocks { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  .block { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .label { font-weight:800; font-size:13px; letter-spacing:2px; color:var(--gold); }
+  .screen { background:#000; border:5px solid var(--edge); border-radius:12px; padding:6px;
+    box-shadow:inset 0 0 0 3px #222, 0 8px 24px rgba(0,0,0,.5); transition:box-shadow .2s; }
+  .screen.skill { box-shadow:0 0 0 4px var(--gold), 0 0 28px rgba(255,207,74,.8); }
+  canvas { display:block; width:min(88vw,280px); height:auto; aspect-ratio:1/1; border-radius:5px; }
+  .bwin { min-height:20px; font-weight:800; font-size:15px; color:#7dffa0; }
+  .msg { min-height:28px; margin:12px 0 4px; text-align:center; font-weight:800; color:var(--gold); font-size:19px; }
+  .hud { display:flex; justify-content:center; gap:10px; margin:8px 0 12px; flex-wrap:wrap; }
   .led { background:#000; border:2px solid #444; border-radius:8px; padding:6px 14px; font-family:ui-monospace,monospace;
-    color:#ff5a3c; font-size:22px; min-width:120px; text-align:center; }
+    color:#ff5a3c; font-size:22px; min-width:110px; text-align:center; }
   .led small { display:block; font-size:10px; color:#aaa; letter-spacing:1px; }
   .btns { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; }
-  button { font:800 16px system-ui,sans-serif; border:0; border-radius:10px; padding:14px 0; width:84px; cursor:pointer;
+  button { font:800 16px system-ui,sans-serif; border:0; border-radius:10px; padding:14px 0; width:110px; cursor:pointer;
     color:#fff; box-shadow:0 5px 0 rgba(0,0,0,.55); }
   button:active:not(:disabled) { transform:translateY(4px); box-shadow:0 1px 0 rgba(0,0,0,.55); }
   button:disabled { opacity:.35; cursor:default; }
-  .stop { background:linear-gradient(#ff6a5a,#c51f12); }
-  .play { background:linear-gradient(#4ad16a,#1d8a37); width:110px; }
+  .stop { background:linear-gradient(#ff6a5a,#c51f12); width:150px; font-size:20px; }
+  .screen.active { border-color:#ff9a3c; box-shadow:0 0 0 4px #ff9a3c, 0 0 26px rgba(255,140,40,.8); }
+  .play { background:linear-gradient(#4ad16a,#1d8a37); width:130px; }
   .bet  { background:linear-gradient(#5c86ff,#2742b8); }
-  .help { text-align:center; font-size:13px; opacity:.7; margin-top:14px; line-height:1.6; }
+  .pay { margin:18px auto 0; max-width:640px; background:#f3e2b3; color:#3a1d00; border:4px solid var(--edge);
+    border-radius:10px; padding:10px 12px; font-size:15px; }
+  .pay h3 { margin:0 0 8px; font-size:14px; text-align:center; letter-spacing:1px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:2px 14px; }
+  .grid div { display:flex; justify-content:space-between; padding:3px 4px; border-bottom:1px dashed rgba(58,29,0,.25); }
+  .pay b { color:#b0170c; }
+  .rules { font-size:13px; line-height:1.55; margin-top:8px; }
 </style>
 </head>
 <body>
 <div class="cab">
   <header>
     <h1>★ STAR STOP ★</h1>
-    <div class="sub">A game of timing &amp; skill · 타이밍과 실력 게임 · play credits only</div>
+    <div class="sub">A game of strategy &amp; skill · 3 blocks · play credits only (no real money)</div>
   </header>
 
-  <div class="main">
-    <div>
-      <div class="screen"><canvas id="c" width="720" height="720"></canvas></div>
-      <div class="msg" id="msg">Press PLAY, then STOP each column!</div>
-    </div>
-    <div class="pay" id="pay"></div>
-  </div>
+  <div class="blocks" id="blocks"></div>
+
+  <div class="msg" id="msg">Press PLAY, then STOP 3 times per block!</div>
 
   <div class="hud">
     <div class="led"><small>CREDITS</small><span id="credits">0</span></div>
-    <div class="led"><small>BET</small><span id="betv">1</span></div>
+    <div class="led"><small>BET / BLOCK</small><span id="betv">1</span></div>
+    <div class="led"><small>TOTAL BET</small><span id="tbet">3</span></div>
     <div class="led"><small>WIN</small><span id="win">0</span></div>
   </div>
 
   <div class="btns">
     <button class="bet" id="betBtn">BET</button>
-    <button class="stop" id="s0">STOP 1</button>
-    <button class="stop" id="s1">STOP 2</button>
-    <button class="stop" id="s2">STOP 3</button>
+    <button class="stop" id="stopBtn">STOP</button>
     <button class="play" id="playBtn">PLAY</button>
   </div>
 
-  <div class="help">
-    Keys: <b>Space</b> = PLAY · <b>1 / 2 / 3</b> (or Z / X / C) = STOP each column · <b>B</b> = BET<br>
-    3 alike in a row or diagonal pays the table × bet · <b>9 alike in the block</b> = ×10 bonus ·
-    <b>2 or 3 SKILL blocks</b> = skill bonus
+  <div class="pay">
+    <h3>PAYS — 3 ALIKE ON A LINE (× BET)</h3>
+    <div class="grid" id="paygrid"></div>
+    <div class="rules">
+      <b>Lines:</b> each block has 5 lines (3 rows + 2 diagonals).<br>
+      <b>9 Alike in a block:</b> all 9 boxes the same → that block's win <b>×10</b>.<br>
+      <b>Skill block:</b> any block with at least one winning line lights up gold.
+      <b>2 skill blocks = +10 × bet</b>, <b>3 skill blocks = +30 × bet</b>.<br>
+      <b>How to play:</b> PLAY → press <b>STOP 3 times</b> to stop Block 1 (left → right), then 3 more for Block 2, then 3 more for Block 3.<br>
+      Keys: <b>Space</b> = PLAY, then STOP · <b>S</b> = STOP · <b>B</b> = BET
+    </div>
   </div>
 </div>
 
 <script>
 (() => {
-  // ---------- symbols ----------
-  // v = payout per line (× bet) for 3 alike
+  // ---------- symbols & pay values ----------
   const SYM = [
-    { e:'🍒', v:3,  name:'Cherry' },
-    { e:'🍋', v:5,  name:'Lemon' },
-    { e:'🍉', v:6,  name:'Melon' },
-    { e:'🔔', v:8,  name:'Bell' },
-    { e:'⭐', v:12, name:'Star' },
-    { e:'🦅', v:16, name:'Eagle' },
-    { e:'💎', v:18, name:'Gem' },
-    { e:'7',  v:25, name:'Seven', seven:true },
-    { e:'SKILL', v:0, name:'Skill', skill:true },
+    { e:'🍒', v:3 },  { e:'🍋', v:5 },  { e:'🍊', v:6 },  { e:'🍉', v:8 },  { e:'🔔', v:8 },
+    { e:'⭐', v:12 }, { e:'🍀', v:12 }, { e:'🦅', v:16 }, { e:'💎', v:16 }, { e:'7', v:18, seven:true },
   ];
-  const SKILL = 8;
-  // Fixed reel strips. Each has runs of 3 identical symbols, so a well-timed stop can fill a column.
-  const STRIPS = [
-    [0,0,0,4,1,8,2,3,3,3,5,1,6,6,6,2,8,7,7,7,4,1,5,2],
-    [3,3,3,1,8,5,0,0,0,2,4,6,6,6,1,8,2,7,7,7,5,4,1,2],
-    [6,6,6,2,1,7,7,7,8,4,5,0,0,0,1,3,3,3,2,8,5,4,1,2],
-  ];
-  const SPEEDS = [0.10, 0.12, 0.14];   // cells per frame — slow enough to aim
+  const TRIPLES = [0, 4, 7, 9];  // these symbols appear as runs of 3 on every reel → 9 alike is possible
+
+  // deterministic reel strips (same every visit, so players can learn them)
+  function rng(seed) { return () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296; }
+  function makeStrip(seed) {
+    const r = rng(seed), units = [];
+    TRIPLES.forEach(s => units.push([s, s, s]));
+    SYM.forEach((_, s) => units.push([s]));
+    for (let i = units.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [units[i], units[j]] = [units[j], units[i]]; }
+    return units.flat();
+  }
+  const SPEEDS = [0.10, 0.12, 0.14];   // cells per frame for column 1 / 2 / 3 of each block
 
   // ---------- paytable ----------
-  const pay = document.getElementById('pay');
-  pay.innerHTML = '<h3>PAYS (× BET)</h3>' +
-    SYM.filter(s => !s.skill).slice().reverse().map(s =>
-      `<div><span>${s.seven ? '<b style="font-size:18px">7</b>' : s.e} ${s.e === '7' ? '' : ''}×3</span><b>${s.v}</b></div>`).join('') +
-    '<div><span>9 alike block</span><b>×10</b></div>' +
-    '<div><span>2 SKILL</span><b>10</b></div><div><span>3 SKILL</span><b>30</b></div>' +
-    '<span class="note">5 lines: 3 rows + 2 diagonals.<br>9 alike = all 9 boxes the same → line wins ×10!</span>';
+  document.getElementById('paygrid').innerHTML = SYM.slice().reverse().map(s =>
+    `<div><span>${s.seven ? '<b style="font-size:17px">7</b>' : s.e} ×3</span><b>${s.v}</b></div>`).join('');
+
+  // ---------- blocks ----------
+  const CELL = 240;
+  const blocksEl = document.getElementById('blocks');
+  const blocks = [0, 1, 2].map(b => {
+    const wrap = document.createElement('div'); wrap.className = 'block';
+    wrap.innerHTML = `<div class="label">BLOCK ${b + 1}</div>
+      <div class="screen"><canvas width="720" height="720"></canvas></div>
+      <div class="bwin"></div>`;
+    blocksEl.appendChild(wrap);
+    const cv = wrap.querySelector('canvas');
+    const block = {
+      ctx: cv.getContext('2d'), screen: wrap.querySelector('.screen'), winEl: wrap.querySelector('.bwin'),
+      next: 0, highlight: [],
+      reels: [0, 1, 2].map(c => {
+        const strip = makeStrip(101 + b * 17 + c * 5);
+        return { strip, pos: Math.floor(Math.random() * strip.length), spinning: false, target: null, speed: SPEEDS[c] };
+      }),
+    };
+    return block;
+  });
 
   // ---------- state ----------
-  const cv = document.getElementById('c'), ctx = cv.getContext('2d');
-  const CELL = 240, N = 3;
   const $ = id => document.getElementById(id);
-  const msg = $('msg'), creditsEl = $('credits'), betEl = $('betv'), winEl = $('win');
-  const stopBtns = [$('s0'), $('s1'), $('s2')], playBtn = $('playBtn'), betBtn = $('betBtn');
-
+  const msg = $('msg'), creditsEl = $('credits'), betEl = $('betv'), tbetEl = $('tbet'), winEl = $('win');
+  const playBtn = $('playBtn'), betBtn = $('betBtn'), stopBtn = $('stopBtn');
   let credits = 100;
-  try { const s = +localStorage.getItem('starStopCredits'); if (s > 0) credits = s; } catch (e) {}
-  let bet = 1, lastWin = 0, shownCredits = credits;
-  const reels = STRIPS.map((strip, i) => ({
-    strip, pos: Math.floor(Math.random() * strip.length), spinning: false, target: null
-  }));
-  let highlight = [], flash = 0, roundActive = false;
-
-  function save() { try { localStorage.setItem('starStopCredits', credits); } catch (e) {} }
+  try { const s = +localStorage.getItem('starStop3Credits'); if (s > 0) credits = s; } catch (e) {}
+  let bet = 1, lastWin = 0, shownCredits = credits, roundActive = false, flash = 0;
+  const save = () => { try { localStorage.setItem('starStop3Credits', credits); } catch (e) {} };
   const mod = (a, n) => ((a % n) + n) % n;
 
   // ---------- sound ----------
@@ -138,179 +147,160 @@
     try {
       ac = ac || new (window.AudioContext || window.webkitAudioContext)();
       const o = ac.createOscillator(), g = ac.createGain();
-      o.type = type; o.frequency.value = freq; g.gain.value = vol;
-      o.connect(g); g.connect(ac.destination);
-      g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur);
-      o.start(); o.stop(ac.currentTime + dur);
+      o.type = type; o.frequency.value = freq; g.gain.value = vol; o.connect(g); g.connect(ac.destination);
+      g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur); o.start(); o.stop(ac.currentTime + dur);
     } catch (e) {}
   }
-  function fanfare(big) {
-    const notes = big ? [523,659,784,1047,784,1047,1319] : [523,659,784];
-    notes.forEach((f, i) => setTimeout(() => beep(f, .15, 'triangle', .07), i * 110));
-  }
+  const fanfare = big => (big ? [523,659,784,1047,784,1047,1319] : [523,659,784])
+    .forEach((f, i) => setTimeout(() => beep(f, .15, 'triangle', .07), i * 110));
 
   // ---------- actions ----------
   function play() {
     if (roundActive) return;
-    if (credits < bet) {
-      if (credits <= 0) { credits = 100; save(); msg.textContent = 'Out of credits — refilled 100 free play credits.'; }
-      else { bet = credits; }
+    const cost = bet * 3;
+    if (credits < cost) {
+      if (credits < 3) { credits = 100; save(); shownCredits = credits; msg.textContent = 'Out of credits — refilled 100 free play credits.'; }
+      else { bet = Math.floor(credits / 3); msg.textContent = 'Bet lowered to fit your credits.'; }
       updateHud(); return;
     }
-    credits -= bet; shownCredits = credits; lastWin = 0; save();
-    highlight = []; roundActive = true;
-    reels.forEach(r => { r.spinning = true; r.target = null; });
-    msg.textContent = 'STOP each column — aim carefully!';
-    beep(300, .1);
-    updateHud();
+    credits -= cost; shownCredits = credits; lastWin = 0; save();
+    roundActive = true; flash = 0;
+    blocks.forEach(b => {
+      b.next = 0; b.highlight = []; b.winEl.textContent = ''; b.screen.classList.remove('skill');
+      b.reels.forEach(r => { r.spinning = true; r.target = null; });
+    });
+    msg.textContent = 'Press STOP 3 times for Block 1, then Block 2, then Block 3.';
+    beep(300, .1); updateHud();
   }
 
-  function stop(i) {
-    const r = reels[i];
-    if (!r.spinning || r.target !== null) return;
+  // one STOP button: 3 presses per block, then it moves to the next block
+  function stopNext() {
+    const b = blocks.find(b => b.next < 3);
+    if (!roundActive || !b) return;
+    const r = b.reels[b.next];
     r.target = Math.floor(r.pos);       // snap to the next box boundary
-    beep(440 + i * 120, .06);
+    b.next++;
+    beep(440 + b.next * 110, .06);
+    updateHud();
   }
 
   function cycleBet() {
     if (roundActive) return;
     bet = bet >= 5 ? 1 : bet + 1;
-    if (bet > credits && credits > 0) bet = 1;
+    if (bet * 3 > credits) bet = 1;
     beep(700, .04); updateHud();
   }
 
-  // grid[col][row]
-  function grid() {
-    return reels.map(r => [0,1,2].map(row => r.strip[mod(r.target + row, r.strip.length)]));
-  }
+  const LINES = [
+    [[0,0],[1,0],[2,0]], [[0,1],[1,1],[2,1]], [[0,2],[1,2],[2,2]],
+    [[0,0],[1,1],[2,2]], [[0,2],[1,1],[2,0]],
+  ];
 
   function evaluate() {
-    const g = grid();
-    const lines = [
-      [[0,0],[1,0],[2,0]], [[0,1],[1,1],[2,1]], [[0,2],[1,2],[2,2]],
-      [[0,0],[1,1],[2,2]], [[0,2],[1,1],[2,0]],
-    ];
-    let win = 0, notes = [];
-    highlight = [];
-    for (const L of lines) {
-      const s = g[L[0][0]][L[0][1]];
-      if (s !== SKILL && L.every(([c, r]) => g[c][r] === s)) {
-        win += SYM[s].v * bet; highlight.push(...L);
+    let total = 0, skillBlocks = 0, nineAny = false;
+    blocks.forEach(b => {
+      const g = b.reels.map(r => [0,1,2].map(row => r.strip[mod(r.target + row, r.strip.length)]));
+      let w = 0; b.highlight = [];
+      for (const L of LINES) {
+        const s = g[L[0][0]][L[0][1]];
+        if (L.every(([c, r]) => g[c][r] === s)) { w += SYM[s].v * bet; b.highlight.push(...L); }
       }
-    }
-    const all = g.flat();
-    const nine = all.every(s => s === all[0]) && all[0] !== SKILL;
-    if (nine) { win *= 10; notes.push('★ 9 ALIKE BLOCK! ×10 ★'); }
-    const skills = all.filter(s => s === SKILL).length;
-    if (skills >= 2) {
-      const sb = (skills >= 3 ? 30 : 10) * bet;
-      win += sb; notes.push(`${skills} SKILL blocks +${sb}`);
-      for (let c = 0; c < 3; c++) for (let r = 0; r < 3; r++) if (g[c][r] === SKILL) highlight.push([c, r]);
-    }
-    lastWin = win; credits += win; save();
-    roundActive = false;
-    if (win > 0) {
-      msg.textContent = (notes.length ? notes.join(' · ') + ' — ' : '') + `WIN ${win}!`;
-      flash = 90; fanfare(nine || skills >= 3);
-    } else {
-      msg.textContent = 'No win — try again! (다시 도전!)';
-    }
+      const all = g.flat(), nine = all.every(s => s === all[0]);
+      if (nine) { w *= 10; nineAny = true; }
+      if (w > 0) { skillBlocks++; b.screen.classList.add('skill'); }
+      b.winEl.textContent = w > 0 ? (nine ? `9 ALIKE! +${w}` : `+${w}`) : '';
+      total += w;
+    });
+    let bonus = 0;
+    if (skillBlocks >= 2) bonus = (skillBlocks === 3 ? 30 : 10) * bet;
+    total += bonus;
+    lastWin = total; credits += total; save(); roundActive = false;
+
+    const parts = [];
+    if (nineAny) parts.push('★ 9 ALIKE BLOCK ×10 ★');
+    if (bonus) parts.push(`${skillBlocks} SKILL BLOCKS +${bonus}`);
+    if (total > 0) { msg.textContent = (parts.length ? parts.join(' · ') + ' — ' : '') + `WIN ${total}!`; flash = 90; fanfare(nineAny || skillBlocks === 3); }
+    else msg.textContent = 'No win — try again! (다시 도전!)';
     updateHud();
   }
 
   function updateHud() {
-    betEl.textContent = bet;
-    winEl.textContent = lastWin;
-    stopBtns.forEach((b, i) => b.disabled = !(reels[i].spinning && reels[i].target === null));
-    playBtn.disabled = roundActive;
-    betBtn.disabled = roundActive;
+    betEl.textContent = bet; tbetEl.textContent = bet * 3; winEl.textContent = lastWin;
+    stopBtn.disabled = !roundActive || blocks.every(b => b.next > 2);
+    const cur = roundActive ? blocks.find(b => b.next < 3) : null;
+    blocks.forEach(b => b.screen.classList.toggle('active', b === cur));
+    playBtn.disabled = roundActive; betBtn.disabled = roundActive;
   }
 
   // ---------- drawing ----------
-  function drawSymbol(s, x, y) {
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function drawSymbol(ctx, s, x, y) {
     const sym = SYM[s], cx = x + CELL / 2, cy = y + CELL / 2;
-    ctx.fillStyle = '#fbf6ea';
-    ctx.fillRect(x + 6, y + 6, CELL - 12, CELL - 12);
-    if (sym.skill) {
-      ctx.fillStyle = '#2c5cff';
-      roundRect(x + 26, y + 70, CELL - 52, 100, 20); ctx.fill();
-      ctx.fillStyle = '#fff'; ctx.font = '900 54px system-ui,sans-serif';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('SKILL', cx, cy + 2);
-    } else if (sym.seven) {
-      ctx.font = '900 170px Georgia,serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fbf6ea'; ctx.fillRect(x + 6, y + 6, CELL - 12, CELL - 12);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    if (sym.seven) {
+      ctx.font = '900 170px Georgia,serif';
       ctx.lineWidth = 10; ctx.strokeStyle = '#ffcf4a'; ctx.strokeText('7', cx, cy + 8);
       ctx.fillStyle = '#d4231a'; ctx.fillText('7', cx, cy + 8);
     } else {
       ctx.font = '140px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(sym.e, cx, cy + 8);
     }
   }
-  function roundRect(x, y, w, h, r) {
-    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
-  }
-
-  function draw() {
+  function drawBlock(b) {
+    const ctx = b.ctx;
     ctx.fillStyle = '#ddd2b8'; ctx.fillRect(0, 0, 720, 720);
-    reels.forEach((r, c) => {
+    b.reels.forEach((r, c) => {
       const L = r.strip.length, base = Math.floor(r.pos), frac = r.pos - base;
       ctx.save(); ctx.beginPath(); ctx.rect(c * CELL, 0, CELL, 720); ctx.clip();
-      for (let row = -1; row <= 3; row++) {
-        drawSymbol(r.strip[mod(base + row, L)], c * CELL, (row - frac) * CELL);
-      }
-      // motion blur tint while spinning
+      for (let row = -1; row <= 3; row++) drawSymbol(ctx, r.strip[mod(base + row, L)], c * CELL, (row - frac) * CELL);
       if (r.spinning) { ctx.fillStyle = 'rgba(40,60,140,.12)'; ctx.fillRect(c * CELL, 0, CELL, 720); }
       ctx.restore();
     });
-    // column dividers
-    ctx.fillStyle = '#1b2140';
-    ctx.fillRect(CELL - 3, 0, 6, 720); ctx.fillRect(CELL * 2 - 3, 0, 6, 720);
-    // highlights
-    if (highlight.length && (flash <= 0 || Math.floor(flash / 8) % 2 === 0)) {
-      ctx.lineWidth = 10; ctx.strokeStyle = '#ff2d55';
-      for (const [c, r] of highlight) { roundRect(c * CELL + 10, r * CELL + 10, CELL - 20, CELL - 20, 18); ctx.stroke(); }
+    // column dividers + "next to stop" marker
+    ctx.fillStyle = '#1b2140'; ctx.fillRect(CELL - 3, 0, 6, 720); ctx.fillRect(CELL * 2 - 3, 0, 6, 720);
+    if (roundActive && b.next < 3) {
+      ctx.fillStyle = 'rgba(255,60,40,.9)';
+      ctx.beginPath(); const mx = b.next * CELL + CELL / 2;
+      ctx.moveTo(mx - 26, 700); ctx.lineTo(mx + 26, 700); ctx.lineTo(mx, 668); ctx.fill();
     }
-    if (flash > 0) flash--;
+    if (b.highlight.length && (flash <= 0 || Math.floor(flash / 8) % 2 === 0)) {
+      ctx.lineWidth = 10; ctx.strokeStyle = '#ff2d55';
+      for (const [c, r] of b.highlight) { roundRect(ctx, c * CELL + 10, r * CELL + 10, CELL - 20, CELL - 20, 18); ctx.stroke(); }
+    }
   }
 
   // ---------- loop ----------
   function tick() {
-    let justFinished = false;
-    reels.forEach((r, i) => {
-      if (!r.spinning) return;
+    let finished = false;
+    for (const b of blocks) for (const r of b.reels) {
+      if (!r.spinning) continue;
       const L = r.strip.length;
-      if (r.target === null) {
-        r.pos -= SPEEDS[i];                       // symbols travel downward
-        if (r.pos < 0) r.pos += L;
-      } else {
-        // glide to the snapped box
-        const d = r.pos - r.target;
-        if (d <= SPEEDS[i]) {
-          r.pos = r.target = mod(r.target, L); r.spinning = false; justFinished = true;
-          beep(180, .07, 'square', .06);
-        } else r.pos -= SPEEDS[i];
-      }
-    });
-    if (justFinished) {
-      updateHud();
-      if (roundActive && reels.every(r => !r.spinning)) evaluate();
+      if (r.target === null) { r.pos -= r.speed; if (r.pos < 0) { r.pos += L; } }
+      else if (r.pos - r.target <= r.speed) {
+        r.pos = r.target = mod(r.target, L); r.spinning = false; finished = true; beep(180, .07, 'square', .06);
+      } else r.pos -= r.speed;
     }
+    // keep targets valid after wrap-around
+    if (finished && roundActive && blocks.every(b => b.reels.every(r => !r.spinning))) evaluate();
     if (shownCredits !== credits) shownCredits += Math.sign(credits - shownCredits);
     creditsEl.textContent = shownCredits;
-    draw();
+    if (flash > 0) flash--;
+    blocks.forEach(drawBlock);
     requestAnimationFrame(tick);
   }
 
   // ---------- input ----------
   playBtn.onclick = play;
   betBtn.onclick = cycleBet;
-  stopBtns.forEach((b, i) => b.onclick = () => { stop(i); updateHud(); });
+  stopBtn.onclick = stopNext;
   addEventListener('keydown', e => {
     const k = e.key.toLowerCase();
-    if (k === ' ' || k === 'enter') { e.preventDefault(); play(); }
-    const idx = { '1':0, '2':1, '3':2, z:0, x:1, c:2 }[k];
-    if (idx !== undefined) { stop(idx); updateHud(); }
+    if (k === ' ' || k === 'enter') { e.preventDefault(); roundActive ? stopNext() : play(); }
+    if (k === 's') stopNext();
     if (k === 'b') cycleBet();
   });
 
