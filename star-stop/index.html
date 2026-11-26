@@ -73,6 +73,7 @@
     <button class="bet" id="betBtn">BET</button>
     <button class="stop" id="stopBtn">STOP</button>
     <button class="play" id="playBtn">PLAY</button>
+    <button class="bet" id="muteBtn">🔊 SOUND</button>
   </div>
 
   <div class="pay">
@@ -84,7 +85,7 @@
       <b>Skill block:</b> any block with at least one winning line lights up gold.
       <b>2 skill blocks = +10 × bet</b>, <b>3 skill blocks = +30 × bet</b>.<br>
       <b>How to play:</b> PLAY → press <b>STOP 3 times</b> to stop Block 1 (left → right), then 3 more for Block 2, then 3 more for Block 3.<br>
-      Keys: <b>Space</b> = PLAY, then STOP · <b>S</b> = STOP · <b>B</b> = BET
+      Keys: <b>Space</b> = PLAY, then STOP · <b>S</b> = STOP · <b>B</b> = BET · <b>M</b> = sound on/off
     </div>
   </div>
 </div>
@@ -149,40 +150,81 @@
   const playBtn = $('playBtn'), betBtn = $('betBtn'), stopBtn = $('stopBtn');
   let credits = 100;
   try { const s = +localStorage.getItem('starStop3Credits'); if (s > 0) credits = s; } catch (e) {}
-  let bet = 1, lastWin = 0, shownCredits = credits, roundActive = false, flash = 0;
+  let bet = 1, lastWin = 0, shownCredits = credits, roundActive = false, flash = 0, spinClock = 0, spinIdx = 0, countIdx = 0;
   const save = () => { try { localStorage.setItem('starStop3Credits', credits); } catch (e) {} };
   const mod = (a, n) => ((a % n) + n) % n;
 
-  // ---------- sound ----------
-  let ac;
-  function beep(freq, dur = .08, type = 'square', vol = .05) {
-    try {
-      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
-      const o = ac.createOscillator(), g = ac.createGain();
-      o.type = type; o.frequency.value = freq; g.gain.value = vol; o.connect(g); g.connect(ac.destination);
-      g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur); o.start(); o.stop(ac.currentTime + dur);
-    } catch (e) {}
+  // ---------- sound (classic video skill-machine style, all synthesized) ----------
+  let ac, master, muted = false;
+  try { muted = localStorage.getItem('starStopMuted') === '1'; } catch (e) {}
+  function audio() {
+    if (!ac) {
+      try {
+        ac = new (window.AudioContext || window.webkitAudioContext)();
+        master = ac.createGain(); master.gain.value = muted ? 0 : .6; master.connect(ac.destination);
+      } catch (e) { return null; }
+    }
+    if (ac.state === 'suspended') ac.resume();
+    return ac;
   }
-  const fanfare = big => (big ? [523,659,784,1047,784,1047,1319] : [523,659,784])
-    .forEach((f, i) => setTimeout(() => beep(f, .15, 'triangle', .07), i * 110));
+  // one oscillator note; `at` = seconds from now, optional pitch slide
+  function tone(freq, at = 0, dur = .08, type = 'square', vol = .05, slideTo = null) {
+    const a = audio(); if (!a) return;
+    const t0 = a.currentTime + at, o = a.createOscillator(), g = a.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t0);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+    g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(master); o.start(t0); o.stop(t0 + dur + .02);
+  }
+  // short filtered noise burst = mechanical "clunk"
+  function noise(at = 0, dur = .05, vol = .25, freq = 900) {
+    const a = audio(); if (!a) return;
+    const len = Math.floor(a.sampleRate * dur), buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+    f.type = 'lowpass'; f.frequency.value = freq; g.gain.value = vol;
+    src.buffer = buf; src.connect(f); f.connect(g); g.connect(master); src.start(a.currentTime + at);
+  }
+  const SFX = {
+    coin()   { tone(988, 0, .09, 'square', .06); tone(1319, .09, .35, 'square', .06); },
+    bet()    { tone(1568, 0, .04, 'square', .04); },
+    play()   { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * .05, .07, 'square', .05)); },
+    // the rolling "dee-dee-dee" while reels spin
+    spinStep(i) { const pat = [784, 1047, 1175, 1047, 880, 1047, 1319, 1047]; tone(pat[i % pat.length], 0, .045, 'square', .022); },
+    stop(n)  { noise(0, .06, .35, 700); tone(150, 0, .09, 'square', .07, 70); tone(1320 + n * 120, .03, .06, 'triangle', .05); },
+    blockDone() { [880, 1175, 1568].forEach((f, i) => tone(f, .08 + i * .06, .08, 'triangle', .06)); },
+    lose()   { tone(392, 0, .16, 'square', .045, 330); tone(330, .17, .28, 'square', .045, 196); },
+    win()    { [784, 988, 1175, 1568, 1175, 1568].forEach((f, i) => tone(f, i * .09, .12, 'square', .05)); },
+    skill()  { for (let k = 0; k < 3; k++) tone(600, k * .22, .2, 'sawtooth', .04, 1400); },
+    jackpot() {
+      for (let k = 0; k < 6; k++) tone(500, k * .18, .17, 'square', .05, 1600);          // siren
+      [1047, 1319, 1568, 2093, 1568, 2093, 2637].forEach((f, i) => tone(f, 1.1 + i * .12, .16, 'triangle', .08));
+    },
+    count(i) { tone(i % 2 ? 1760 : 1480, 0, .025, 'square', .03); },   // credit count-up tick
+  };
+  function setMuted(m) {
+    muted = m; try { localStorage.setItem('starStopMuted', m ? '1' : '0'); } catch (e) {}
+    if (master) master.gain.value = m ? 0 : .6;
+    const btn = document.getElementById('muteBtn'); if (btn) btn.textContent = m ? '🔇 SOUND' : '🔊 SOUND';
+  }
 
   // ---------- actions ----------
   function play() {
     if (roundActive) return;
     const cost = bet * 3;
     if (credits < cost) {
-      if (credits < 3) { credits = 100; save(); shownCredits = credits; msg.textContent = 'Out of credits — refilled 100 free play credits.'; }
+      if (credits < 3) { credits = 100; save(); shownCredits = credits; SFX.coin(); msg.textContent = 'Out of credits — refilled 100 free play credits.'; }
       else { bet = Math.floor(credits / 3); msg.textContent = 'Bet lowered to fit your credits.'; }
       updateHud(); return;
     }
     credits -= cost; shownCredits = credits; lastWin = 0; save();
-    roundActive = true; flash = 0;
+    roundActive = true; flash = 0; spinClock = 0; spinIdx = 0;
     blocks.forEach(b => {
       b.next = 0; b.highlight = []; b.winEl.textContent = ''; b.screen.classList.remove('skill');
       b.reels.forEach(r => { r.spinning = true; r.target = null; });
     });
     msg.textContent = 'Press STOP 3 times for Block 1, then Block 2, then Block 3.';
-    beep(300, .1); updateHud();
+    SFX.play(); updateHud();
   }
 
   // one STOP button: 3 presses per block, then it moves to the next block
@@ -192,7 +234,8 @@
     const r = b.reels[b.next];
     r.target = Math.floor(r.pos);       // snap to the next box boundary
     b.next++;
-    beep(440 + b.next * 110, .06);
+    SFX.stop(blocks.indexOf(b) * 3 + b.next);
+    if (b.next === 3) SFX.blockDone();
     updateHud();
   }
 
@@ -200,7 +243,7 @@
     if (roundActive) return;
     bet = bet >= 5 ? 1 : bet + 1;
     if (bet * 3 > credits) bet = 1;
-    beep(700, .04); updateHud();
+    SFX.bet(); updateHud();
   }
 
   const LINES = [
@@ -231,8 +274,10 @@
     const parts = [];
     if (nineAny) parts.push('★ 9 ALIKE BLOCK ×10 ★');
     if (bonus) parts.push(`${skillBlocks} SKILL BLOCKS +${bonus}`);
-    if (total > 0) { msg.textContent = (parts.length ? parts.join(' · ') + ' — ' : '') + `WIN ${total}!`; flash = 90; fanfare(nineAny || skillBlocks === 3); }
-    else msg.textContent = 'No win — try again! (다시 도전!)';
+    if (total > 0) { msg.textContent = (parts.length ? parts.join(' · ') + ' — ' : '') + `WIN ${total}!`; flash = 90; 
+      if (nineAny) SFX.jackpot(); else if (bonus) { SFX.skill(); setTimeout(SFX.win, 700); } else SFX.win();
+    }
+    else { msg.textContent = 'No win — try again! (다시 도전!)'; SFX.lose(); }
     updateHud();
   }
 
@@ -303,12 +348,18 @@
       const L = r.strip.length;
       if (r.target === null) { r.pos -= r.speed; if (r.pos < 0) { r.pos += L; } }
       else if (r.pos - r.target <= r.speed) {
-        r.pos = r.target = mod(r.target, L); r.spinning = false; finished = true; beep(180, .07, 'square', .06);
+        r.pos = r.target = mod(r.target, L); r.spinning = false; finished = true;
       } else r.pos -= r.speed;
     }
     // keep targets valid after wrap-around
     if (finished && roundActive && blocks.every(b => b.reels.every(r => !r.spinning))) evaluate();
-    if (shownCredits !== credits) shownCredits += Math.sign(credits - shownCredits);
+    // rolling spin jingle while any reel is still free-spinning
+    if (roundActive && blocks.some(b => b.reels.some(r => r.spinning && r.target === null))) {
+      if (++spinClock % 5 === 0) SFX.spinStep(spinIdx++);
+    }
+    // credits count up one by one with a tick, like the real cabinets
+    if (shownCredits < credits) { shownCredits++; if (++countIdx % 2 === 0) SFX.count(countIdx / 2); }
+    else if (shownCredits > credits) shownCredits = credits;
     creditsEl.textContent = shownCredits;
     if (flash > 0) flash--;
     blocks.forEach(drawBlock);
@@ -319,11 +370,14 @@
   playBtn.onclick = play;
   betBtn.onclick = cycleBet;
   stopBtn.onclick = stopNext;
+  document.getElementById('muteBtn').onclick = () => setMuted(!muted);
+  setMuted(muted);
   addEventListener('keydown', e => {
     const k = e.key.toLowerCase();
     if (k === ' ' || k === 'enter') { e.preventDefault(); roundActive ? stopNext() : play(); }
     if (k === 's') stopNext();
     if (k === 'b') cycleBet();
+    if (k === 'm') setMuted(!muted);
   });
 
   updateHud(); tick();
