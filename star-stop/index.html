@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Star Stop</title>
+<style>
+  :root { --bg:#10131f; --panel:#1b2140; --edge:#c9342c; --gold:#ffcf4a; --ink:#f4f1e8; --blue:#2c5cff; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; min-height:100%; background:
+      repeating-linear-gradient(90deg,#0e1430 0 10px,#15204a 10px 20px); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif; user-select:none; -webkit-user-select:none;
+    touch-action:manipulation; }
+  .cab { max-width:760px; margin:0 auto; padding:16px; }
+  header { text-align:center; margin:4px 0 14px; }
+  h1 { margin:0; display:inline-block; padding:6px 28px; font-size:clamp(30px,7vw,48px); letter-spacing:3px;
+    color:#fff; background:linear-gradient(#e2493b,#9e1f17); border:4px solid var(--gold); border-radius:999px;
+    text-shadow:0 3px 0 #5a0c06; box-shadow:0 0 24px rgba(255,207,74,.35); }
+  .sub { font-size:13px; opacity:.7; margin-top:6px; }
+  .main { display:flex; gap:14px; justify-content:center; align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:#000; border:6px solid var(--edge); border-radius:14px; padding:10px;
+    box-shadow:inset 0 0 0 3px #222, 0 10px 30px rgba(0,0,0,.5); }
+  canvas { display:block; width:min(86vw,360px); height:auto; aspect-ratio:1/1; border-radius:6px; }
+  .msg { min-height:28px; margin-top:8px; text-align:center; font-weight:800; color:var(--gold); font-size:18px; }
+  .pay { background:#f3e2b3; color:#3a1d00; border:4px solid var(--edge); border-radius:10px; padding:8px 10px;
+    min-width:170px; font-size:15px; }
+  .pay h3 { margin:0 0 6px; font-size:14px; text-align:center; letter-spacing:1px; }
+  .pay div { display:flex; justify-content:space-between; align-items:center; padding:3px 4px;
+    border-bottom:1px dashed rgba(58,29,0,.25); }
+  .pay div:last-child { border-bottom:0; }
+  .pay b { color:#b0170c; }
+  .pay .note { display:block; font-size:12px; line-height:1.35; padding-top:6px; }
+  .hud { display:flex; justify-content:center; gap:10px; margin:14px 0 10px; flex-wrap:wrap; }
+  .led { background:#000; border:2px solid #444; border-radius:8px; padding:6px 14px; font-family:ui-monospace,monospace;
+    color:#ff5a3c; font-size:22px; min-width:120px; text-align:center; }
+  .led small { display:block; font-size:10px; color:#aaa; letter-spacing:1px; }
+  .btns { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; }
+  button { font:800 16px system-ui,sans-serif; border:0; border-radius:10px; padding:14px 0; width:84px; cursor:pointer;
+    color:#fff; box-shadow:0 5px 0 rgba(0,0,0,.55); }
+  button:active:not(:disabled) { transform:translateY(4px); box-shadow:0 1px 0 rgba(0,0,0,.55); }
+  button:disabled { opacity:.35; cursor:default; }
+  .stop { background:linear-gradient(#ff6a5a,#c51f12); }
+  .play { background:linear-gradient(#4ad16a,#1d8a37); width:110px; }
+  .bet  { background:linear-gradient(#5c86ff,#2742b8); }
+  .help { text-align:center; font-size:13px; opacity:.7; margin-top:14px; line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="cab">
+  <header>
+    <h1>★ STAR STOP ★</h1>
+    <div class="sub">A game of timing &amp; skill · 타이밍과 실력 게임 · play credits only</div>
+  </header>
+
+  <div class="main">
+    <div>
+      <div class="screen"><canvas id="c" width="720" height="720"></canvas></div>
+      <div class="msg" id="msg">Press PLAY, then STOP each column!</div>
+    </div>
+    <div class="pay" id="pay"></div>
+  </div>
+
+  <div class="hud">
+    <div class="led"><small>CREDITS</small><span id="credits">0</span></div>
+    <div class="led"><small>BET</small><span id="betv">1</span></div>
+    <div class="led"><small>WIN</small><span id="win">0</span></div>
+  </div>
+
+  <div class="btns">
+    <button class="bet" id="betBtn">BET</button>
+    <button class="stop" id="s0">STOP 1</button>
+    <button class="stop" id="s1">STOP 2</button>
+    <button class="stop" id="s2">STOP 3</button>
+    <button class="play" id="playBtn">PLAY</button>
+  </div>
+
+  <div class="help">
+    Keys: <b>Space</b> = PLAY · <b>1 / 2 / 3</b> (or Z / X / C) = STOP each column · <b>B</b> = BET<br>
+    3 alike in a row or diagonal pays the table × bet · <b>9 alike in the block</b> = ×10 bonus ·
+    <b>2 or 3 SKILL blocks</b> = skill bonus
+  </div>
+</div>
+
+<script>
+(() => {
+  // ---------- symbols ----------
+  // v = payout per line (× bet) for 3 alike
+  const SYM = [
+    { e:'🍒', v:3,  name:'Cherry' },
+    { e:'🍋', v:5,  name:'Lemon' },
+    { e:'🍉', v:6,  name:'Melon' },
+    { e:'🔔', v:8,  name:'Bell' },
+    { e:'⭐', v:12, name:'Star' },
+    { e:'🦅', v:16, name:'Eagle' },
+    { e:'💎', v:18, name:'Gem' },
+    { e:'7',  v:25, name:'Seven', seven:true },
+    { e:'SKILL', v:0, name:'Skill', skill:true },
+  ];
+  const SKILL = 8;
+  // Fixed reel strips. Each has runs of 3 identical symbols, so a well-timed stop can fill a column.
+  const STRIPS = [
+    [0,0,0,4,1,8,2,3,3,3,5,1,6,6,6,2,8,7,7,7,4,1,5,2],
+    [3,3,3,1,8,5,0,0,0,2,4,6,6,6,1,8,2,7,7,7,5,4,1,2],
+    [6,6,6,2,1,7,7,7,8,4,5,0,0,0,1,3,3,3,2,8,5,4,1,2],
+  ];
+  const SPEEDS = [0.10, 0.12, 0.14];   // cells per frame — slow enough to aim
+
+  // ---------- paytable ----------
+  const pay = document.getElementById('pay');
+  pay.innerHTML = '<h3>PAYS (× BET)</h3>' +
+    SYM.filter(s => !s.skill).slice().reverse().map(s =>
+      `<div><span>${s.seven ? '<b style="font-size:18px">7</b>' : s.e} ${s.e === '7' ? '' : ''}×3</span><b>${s.v}</b></div>`).join('') +
+    '<div><span>9 alike block</span><b>×10</b></div>' +
+    '<div><span>2 SKILL</span><b>10</b></div><div><span>3 SKILL</span><b>30</b></div>' +
+    '<span class="note">5 lines: 3 rows + 2 diagonals.<br>9 alike = all 9 boxes the same → line wins ×10!</span>';
+
+  // ---------- state ----------
+  const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+  const CELL = 240, N = 3;
+  const $ = id => document.getElementById(id);
+  const msg = $('msg'), creditsEl = $('credits'), betEl = $('betv'), winEl = $('win');
+  const stopBtns = [$('s0'), $('s1'), $('s2')], playBtn = $('playBtn'), betBtn = $('betBtn');
+
+  let credits = 100;
+  try { const s = +localStorage.getItem('starStopCredits'); if (s > 0) credits = s; } catch (e) {}
+  let bet = 1, lastWin = 0, shownCredits = credits;
+  const reels = STRIPS.map((strip, i) => ({
+    strip, pos: Math.floor(Math.random() * strip.length), spinning: false, target: null
+  }));
+  let highlight = [], flash = 0, roundActive = false;
+
+  function save() { try { localStorage.setItem('starStopCredits', credits); } catch (e) {} }
+  const mod = (a, n) => ((a % n) + n) % n;
+
+  // ---------- sound ----------
+  let ac;
+  function beep(freq, dur = .08, type = 'square', vol = .05) {
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = type; o.frequency.value = freq; g.gain.value = vol;
+      o.connect(g); g.connect(ac.destination);
+      g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur);
+      o.start(); o.stop(ac.currentTime + dur);
+    } catch (e) {}
+  }
+  function fanfare(big) {
+    const notes = big ? [523,659,784,1047,784,1047,1319] : [523,659,784];
+    notes.forEach((f, i) => setTimeout(() => beep(f, .15, 'triangle', .07), i * 110));
+  }
+
+  // ---------- actions ----------
+  function play() {
+    if (roundActive) return;
+    if (credits < bet) {
+      if (credits <= 0) { credits = 100; save(); msg.textContent = 'Out of credits — refilled 100 free play credits.'; }
+      else { bet = credits; }
+      updateHud(); return;
+    }
+    credits -= bet; shownCredits = credits; lastWin = 0; save();
+    highlight = []; roundActive = true;
+    reels.forEach(r => { r.spinning = true; r.target = null; });
+    msg.textContent = 'STOP each column — aim carefully!';
+    beep(300, .1);
+    updateHud();
+  }
+
+  function stop(i) {
+    const r = reels[i];
+    if (!r.spinning || r.target !== null) return;
+    r.target = Math.floor(r.pos);       // snap to the next box boundary
+    beep(440 + i * 120, .06);
+  }
+
+  function cycleBet() {
+    if (roundActive) return;
+    bet = bet >= 5 ? 1 : bet + 1;
+    if (bet > credits && credits > 0) bet = 1;
+    beep(700, .04); updateHud();
+  }
+
+  // grid[col][row]
+  function grid() {
+    return reels.map(r => [0,1,2].map(row => r.strip[mod(r.target + row, r.strip.length)]));
+  }
+
+  function evaluate() {
+    const g = grid();
+    const lines = [
+      [[0,0],[1,0],[2,0]], [[0,1],[1,1],[2,1]], [[0,2],[1,2],[2,2]],
+      [[0,0],[1,1],[2,2]], [[0,2],[1,1],[2,0]],
+    ];
+    let win = 0, notes = [];
+    highlight = [];
+    for (const L of lines) {
+      const s = g[L[0][0]][L[0][1]];
+      if (s !== SKILL && L.every(([c, r]) => g[c][r] === s)) {
+        win += SYM[s].v * bet; highlight.push(...L);
+      }
+    }
+    const all = g.flat();
+    const nine = all.every(s => s === all[0]) && all[0] !== SKILL;
+    if (nine) { win *= 10; notes.push('★ 9 ALIKE BLOCK! ×10 ★'); }
+    const skills = all.filter(s => s === SKILL).length;
+    if (skills >= 2) {
+      const sb = (skills >= 3 ? 30 : 10) * bet;
+      win += sb; notes.push(`${skills} SKILL blocks +${sb}`);
+      for (let c = 0; c < 3; c++) for (let r = 0; r < 3; r++) if (g[c][r] === SKILL) highlight.push([c, r]);
+    }
+    lastWin = win; credits += win; save();
+    roundActive = false;
+    if (win > 0) {
+      msg.textContent = (notes.length ? notes.join(' · ') + ' — ' : '') + `WIN ${win}!`;
+      flash = 90; fanfare(nine || skills >= 3);
+    } else {
+      msg.textContent = 'No win — try again! (다시 도전!)';
+    }
+    updateHud();
+  }
+
+  function updateHud() {
+    betEl.textContent = bet;
+    winEl.textContent = lastWin;
+    stopBtns.forEach((b, i) => b.disabled = !(reels[i].spinning && reels[i].target === null));
+    playBtn.disabled = roundActive;
+    betBtn.disabled = roundActive;
+  }
+
+  // ---------- drawing ----------
+  function drawSymbol(s, x, y) {
+    const sym = SYM[s], cx = x + CELL / 2, cy = y + CELL / 2;
+    ctx.fillStyle = '#fbf6ea';
+    ctx.fillRect(x + 6, y + 6, CELL - 12, CELL - 12);
+    if (sym.skill) {
+      ctx.fillStyle = '#2c5cff';
+      roundRect(x + 26, y + 70, CELL - 52, 100, 20); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = '900 54px system-ui,sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('SKILL', cx, cy + 2);
+    } else if (sym.seven) {
+      ctx.font = '900 170px Georgia,serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.lineWidth = 10; ctx.strokeStyle = '#ffcf4a'; ctx.strokeText('7', cx, cy + 8);
+      ctx.fillStyle = '#d4231a'; ctx.fillText('7', cx, cy + 8);
+    } else {
+      ctx.font = '140px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(sym.e, cx, cy + 8);
+    }
+  }
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+
+  function draw() {
+    ctx.fillStyle = '#ddd2b8'; ctx.fillRect(0, 0, 720, 720);
+    reels.forEach((r, c) => {
+      const L = r.strip.length, base = Math.floor(r.pos), frac = r.pos - base;
+      ctx.save(); ctx.beginPath(); ctx.rect(c * CELL, 0, CELL, 720); ctx.clip();
+      for (let row = -1; row <= 3; row++) {
+        drawSymbol(r.strip[mod(base + row, L)], c * CELL, (row - frac) * CELL);
+      }
+      // motion blur tint while spinning
+      if (r.spinning) { ctx.fillStyle = 'rgba(40,60,140,.12)'; ctx.fillRect(c * CELL, 0, CELL, 720); }
+      ctx.restore();
+    });
+    // column dividers
+    ctx.fillStyle = '#1b2140';
+    ctx.fillRect(CELL - 3, 0, 6, 720); ctx.fillRect(CELL * 2 - 3, 0, 6, 720);
+    // highlights
+    if (highlight.length && (flash <= 0 || Math.floor(flash / 8) % 2 === 0)) {
+      ctx.lineWidth = 10; ctx.strokeStyle = '#ff2d55';
+      for (const [c, r] of highlight) { roundRect(c * CELL + 10, r * CELL + 10, CELL - 20, CELL - 20, 18); ctx.stroke(); }
+    }
+    if (flash > 0) flash--;
+  }
+
+  // ---------- loop ----------
+  function tick() {
+    let justFinished = false;
+    reels.forEach((r, i) => {
+      if (!r.spinning) return;
+      const L = r.strip.length;
+      if (r.target === null) {
+        r.pos -= SPEEDS[i];                       // symbols travel downward
+        if (r.pos < 0) r.pos += L;
+      } else {
+        // glide to the snapped box
+        const d = r.pos - r.target;
+        if (d <= SPEEDS[i]) {
+          r.pos = r.target = mod(r.target, L); r.spinning = false; justFinished = true;
+          beep(180, .07, 'square', .06);
+        } else r.pos -= SPEEDS[i];
+      }
+    });
+    if (justFinished) {
+      updateHud();
+      if (roundActive && reels.every(r => !r.spinning)) evaluate();
+    }
+    if (shownCredits !== credits) shownCredits += Math.sign(credits - shownCredits);
+    creditsEl.textContent = shownCredits;
+    draw();
+    requestAnimationFrame(tick);
+  }
+
+  // ---------- input ----------
+  playBtn.onclick = play;
+  betBtn.onclick = cycleBet;
+  stopBtns.forEach((b, i) => b.onclick = () => { stop(i); updateHud(); });
+  addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if (k === ' ' || k === 'enter') { e.preventDefault(); play(); }
+    const idx = { '1':0, '2':1, '3':2, z:0, x:1, c:2 }[k];
+    if (idx !== undefined) { stop(idx); updateHud(); }
+    if (k === 'b') cycleBet();
+  });
+
+  updateHud(); tick();
+})();
+</script>
+</body>
+</html>
