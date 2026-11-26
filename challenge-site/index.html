@@ -46,9 +46,35 @@ h2{font-size:22px;margin:0 0 12px}
 .lvbar i{display:block;height:100%;width:0;background:var(--dim);border-radius:99px}
 .presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .presets .ghost{flex:1 1 0;min-height:36px;font-size:14px;padding:0 6px}
-.tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;background:#0a0d10;border:1px solid var(--line);border-radius:12px;padding:5px}
+.tabs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;background:#0a0d10;border:1px solid var(--line);border-radius:12px;padding:5px}
 .tab{background:transparent;min-height:44px;padding:0 6px;white-space:nowrap;font-size:15px}
-@media(max-width:520px){.tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1100px){.tabs{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.bigbox{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;background:linear-gradient(#c9971c,#8a6410);padding:8px;border-radius:14px}
+.blk{background:#0a0d10;border-radius:10px;padding:5px;display:grid;gap:5px;outline:3px solid transparent;outline-offset:1px;transition:outline-color .2s,box-shadow .2s}
+.blk.held{outline-color:#4da3ff}
+.blk.nine{outline-color:var(--gold);box-shadow:0 0 22px #ffd166aa}
+.bl{font-size:12px;font-weight:700;color:var(--dim);display:flex;justify-content:space-between;gap:4px;white-space:nowrap}
+.blk.skill .bl b{color:var(--win)}
+.blk.held .bl span{color:#7cbcff}
+.cells{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}
+.c9{aspect-ratio:1;background:linear-gradient(#ffffff,#e4e9ee);border-radius:5px;display:grid;place-items:center}
+.c9 svg{width:80%;height:80%}
+.c9.hit{background:linear-gradient(#f6ffd8,#d6f27c);box-shadow:inset 0 0 0 2px #8fb800}
+.c9.spin svg{filter:blur(1.5px);transform:translateY(2px)}
+.holds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.holds .ghost{font-size:14px;padding:0 4px;white-space:nowrap}
+.holds .ghost.on{background:#4da3ff;border-color:#4da3ff;color:#04182c}
+.holds .ghost:disabled{opacity:.4;cursor:default}
+.nbscreen{display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:8px;align-items:stretch}
+.blk{align-content:start}
+.c9{aspect-ratio:4/5}
+.chart{contain:size;background:#ffe3b8;border:3px solid #d8322f;border-radius:10px;padding:4px;display:grid;grid-template-rows:repeat(9,minmax(0,1fr));gap:2px;overflow:hidden}
+.chart div{display:flex;align-items:center;justify-content:space-between;gap:2px;background:#fff6e6;border-radius:5px;padding:0 5px;color:#c0221f;font:700 15px/1 "Space Grotesk",sans-serif;transition:background .2s;min-height:0}
+.chart svg{height:min(16px,95%);width:auto;aspect-ratio:1;flex:none}
+.chart .k{font:700 11px/1 "Noto Sans KR",sans-serif;color:#7a1412;white-space:nowrap}
+.chart div.lit{background:#d8322f;color:#fff}
+.chart div.lit .k{color:#fff}
+@media(max-width:600px){.machine{padding:12px}.nbscreen{grid-template-columns:minmax(0,1fr)}.chart{contain:none;grid-template-rows:none;grid-template-columns:repeat(3,minmax(0,1fr))}.chart div{padding:5px 6px}.bigbox{gap:5px;padding:5px}.blk{padding:3px;gap:3px}.cells{gap:2px}.bl{font-size:11px}}
 .tab[aria-selected=true]{background:var(--panel2);color:var(--win)}
 .machine{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;display:grid;gap:16px}
 .screen{background:#0a0d10;border:1px solid var(--line);border-radius:14px;padding:18px 16px 16px;text-align:center}
@@ -157,9 +183,10 @@ footer{border-top:1px solid var(--line);color:var(--dim);font-size:13px;padding-
   <div class="grid">
     <section class="machine" aria-label="게임">
       <div class="tabs" role="tablist">
+        <button class="btn tab" role="tab" data-g="blocks">9칸 블록</button>
         <button class="btn tab" role="tab" data-g="slots">슬롯</button>
         <button class="btn tab" role="tab" data-g="roulette">룰렛</button>
-        <button class="btn tab" role="tab" data-g="limbo">리비티</button>
+        <button class="btn tab" role="tab" data-g="limbo">림보</button>
         <button class="btn tab" role="tab" data-g="dice">주사위</button>
         <button class="btn tab" role="tab" data-g="coin">동전</button>
         <button class="btn tab" role="tab" data-g="mines">지뢰</button>
@@ -174,7 +201,24 @@ footer{border-top:1px solid var(--line);color:var(--dim);font-size:13px;padding-
         <div style="margin-top:16px"><span class="lab">당첨표 (베팅 금액 × 배당)</span><div class="paytbl" id="paytbl"></div></div>
       </div>
 
-      <!-- LIMBO-style "리비티" -->
+      <!-- 9-CELL BLOCKS -->
+      <div id="g-blocks" class="game" hidden>
+        <div class="screen" style="padding:8px">
+          <div class="nbscreen"><div class="bigbox" id="bigbox"></div><div class="chart" id="nbpay" aria-label="점수표 (베팅 금액 × 배당)"></div></div>
+          <div class="verdict" id="nbVerdict" aria-live="polite">스핀 → 지킬 블록 고정 → 한 번 더 돌리기</div>
+        </div>
+        <div style="margin-top:14px">
+          <span class="lab">블록 고정 (스핀 후, 무료로 한 번 더 돌릴 때 그대로 둘 블록)</span>
+          <div class="holds" id="holds">
+            <button class="btn ghost" data-hold="0" disabled>BLOCK 1</button>
+            <button class="btn ghost" data-hold="1" disabled>BLOCK 2</button>
+            <button class="btn ghost" data-hold="2" disabled>BLOCK 3</button>
+          </div>
+        </div>
+        <p class="lab" style="margin:10px 0 0">오른쪽 점수표: 줄(가로·세로·대각선) 하나에 같은 그림 3개당 배당 · 9칸 전부 같으면 50x · 줄이 맞은 블록(스킬 블록) 2개면 +0.5x, 3개면 +2x</p>
+      </div>
+
+      <!-- LIMBO -->
       <div id="g-limbo" class="game" hidden>
         <div class="screen">
           <div class="lv num" id="lvNum">1.00x</div>
@@ -262,6 +306,7 @@ footer{border-top:1px solid var(--line);color:var(--dim);font-size:13px;padding-
         </div>
       </div>
       <button class="btn go" id="go">굴리기</button>
+      <button class="btn ghost" id="nbTake" hidden style="min-height:48px">다시 돌리지 않고 지금 결과 받기</button>
       <div><span class="lab">최근 결과</span><div class="hist" id="hist"></div></div>
     </section>
 
@@ -301,7 +346,7 @@ const BOMB='<svg viewBox="0 0 24 24"><circle cx="11" cy="14" r="8" fill="#ff5a5f
 const $=id=>document.getElementById(id);
 const fmt=n=>Math.floor(n).toLocaleString('ko-KR');
 let S;
-function fresh(){return{bal:START,streak:0,prog:{},claimed:{},hist:[],end:Date.now()+3*864e5+5*36e5,game:'slots',side:0,mines:null,rBet:'red',rNum:7}}
+function fresh(){return{bal:START,streak:0,prog:{},claimed:{},hist:[],end:Date.now()+3*864e5+5*36e5,game:'blocks',side:0,nb:null,mines:null,rBet:'red',rNum:7}}
 function load(){
   const hot=window.claude?.hot?.data;
   if(hot&&hot.bal!==undefined)return hot;
@@ -483,7 +528,78 @@ function playSlots(b){
   [0,1,2].forEach(j=>setTimeout(()=>{stopped=j+1;reelNow[j]=res[j];reels[j].classList.remove('spin');drawReels();sfx('stop');if(j===2)finish()},500+j*400));
 }
 
-/* ---- 리비티 (limbo-style) ---- */
+/* ---- 9칸 블록: three 3x3 blocks, hold blocks, one free respin ---- */
+const NBV={cherry:.1,lemon:.2,bell:.4,star:.6,gem:1,seven:2},NB_NINE=50,NB_SK2=.5,NB_SK3=2;
+const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const newBlk=()=>Array.from({length:9},pickSym);
+function scoreBlocks(B){
+  const per=B.map(g=>{
+    if(g.every(x=>x===g[0]))return{m:NB_NINE,sk:true,nine:true,hits:new Set([0,1,2,3,4,5,6,7,8])};
+    let m=0;const hits=new Set();
+    for(const l of LINES)if(g[l[0]]===g[l[1]]&&g[l[1]]===g[l[2]]){m+=NBV[g[l[0]]];l.forEach(i=>hits.add(i))}
+    return{m,sk:m>0,nine:false,hits};
+  });
+  const sk=per.filter(p=>p.sk).length,bonus=sk===3?NB_SK3:sk===2?NB_SK2:0;
+  return{per,sk,bonus,mult:Math.round((per.reduce((a,p)=>a+p.m,0)+bonus)*100)/100};
+}
+let nbShow=[
+  ['seven','seven','seven','bell','gem','bell','cherry','lemon','star'],
+  ['gem','gem','gem','gem','gem','gem','gem','gem','gem'],
+  ['lemon','cherry','bell','star','cherry','lemon','bell','cherry','seven']
+],nbSpin=[false,false,false];
+function renderBlocks(){
+  const st=S.nb,B=st?st.B:nbShow,sc=scoreBlocks(B),live=!!st;
+  $('bigbox').innerHTML=B.map((g,j)=>{
+    const p=sc.per[j],held=live&&st.held[j];
+    return `<div class="blk ${p.sk?'skill':''} ${p.nine?'nine':''} ${held?'held':''}"><div class="bl"><span>BLOCK ${j+1}${held?' 고정':''}</span>${p.nine?'<b>9칸!</b>':p.sk?'<b>스킬</b>':''}</div><div class="cells">${g.map((k,i)=>`<div class="c9 ${!nbSpin[j]&&p.hits.has(i)?'hit':''} ${nbSpin[j]?'spin':''}">${ICON[k]}</div>`).join('')}</div></div>`;
+  }).join('');
+  document.querySelectorAll('[data-hold]').forEach(x=>{const j=+x.dataset.hold;x.disabled=!live||busy;x.classList.toggle('on',live&&st.held[j]);x.textContent=`BLOCK ${j+1}${live&&st.held[j]?' 고정됨':''}`});
+  $('nbTake').hidden=!(live&&S.game==='blocks');
+  if(live&&!busy)$('nbTake').textContent=`다시 돌리지 않고 지금 받기 (${fmt(st.b*sc.mult)} 코인)`;
+  renderChart(nbSpin.some(Boolean)?null:sc);
+}
+function renderChart(sc){
+  const lit=new Set();
+  if(sc){sc.per.forEach((p,j)=>{if(p.nine)lit.add('nine')});if(sc.sk===3)lit.add('sk3');if(sc.sk===2)lit.add('sk2');
+    sc.per.forEach((p,j)=>{if(!p.nine)p.hits.forEach(i=>lit.add((S.nb?S.nb.B:nbShow)[j][i]))})}
+  $('nbpay').innerHTML=`<div class="${lit.has('nine')?'lit':''}"><span class="k">9칸</span>${NB_NINE}</div>`
+    +`<div class="${lit.has('sk3')?'lit':''}"><span class="k">스킬 3</span>+${NB_SK3}</div>`
+    +`<div class="${lit.has('sk2')?'lit':''}"><span class="k">스킬 2</span>+${NB_SK2}</div>`
+    +[...SYM].reverse().map(s=>`<div class="${lit.has(s.k)?'lit':''}">${ICON[s.k]}${NBV[s.k]}</div>`).join('');
+}
+function startBlocks(b){
+  S.bal-=b;const B=[newBlk(),newBlk(),newBlk()],sc=scoreBlocks(B);
+  S.nb={b,B,held:sc.per.map(p=>p.sk)};   // suggest holding blocks that already pay
+  sfx('stop');
+  $('nbVerdict').textContent=sc.mult?`지금 ${sc.mult}x · 지킬 블록을 고르고 한 번 더 돌리세요`:'꽝이에요 · 고정할 블록을 고르고 한 번 더 돌려보세요';
+  save();renderAll();
+}
+function finishBlocks(){
+  const st=S.nb,sc=scoreBlocks(st.B),pay=Math.floor(st.b*sc.mult);
+  nbShow=st.B;S.nb=null;
+  if(sc.per.some(p=>p.nine))sfx('fanfare');
+  $('nbVerdict').innerHTML=sc.mult?`<span class="w">${sc.per.some(p=>p.nine)?'9칸 보너스! ':''}${sc.sk>=2?'스킬 블록 '+sc.sk+'개! ':''}${sc.mult}x · ${pay>=st.b?'+'+fmt(pay-st.b)+' 코인':fmt(pay)+' 코인 돌려받음 (−'+fmt(st.b-pay)+')'}</span>`:`<span class="l">꽝 −${fmt(st.b)} 코인</span>`;
+  settle(st.b,pay,sc.mult,sc.mult?sc.mult+'x':'꽝');
+}
+function respinBlocks(){
+  const st=S.nb;if(!st||busy)return;
+  if(st.held.every(Boolean)){finishBlocks();return}
+  busy=true;renderGo();
+  const fast=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const res=st.B.map((g,j)=>st.held[j]?g:newBlk());
+  nbSpin=st.held.map(h=>!h&&!fast);
+  $('nbVerdict').textContent='돌아가는 중…';
+  let fr=0;
+  const iv=setInterval(()=>{st.B=st.B.map((g,j)=>nbSpin[j]?newBlk():g);renderBlocks();if(fr++%2===0)sfx('tick')},80);
+  const stops=[0,1,2].filter(j=>!st.held[j]);
+  const done=()=>{clearInterval(iv);nbSpin=[false,false,false];st.B=res;busy=false;finishBlocks()};
+  if(fast){done();return}
+  stops.forEach((j,n)=>setTimeout(()=>{nbSpin[j]=false;st.B[j]=res[j];sfx('stop');renderBlocks();if(n===stops.length-1)done()},500+n*350));
+}
+$('holds').onclick=e=>{const x=e.target.closest('[data-hold]');if(!x||!S.nb||busy)return;const j=+x.dataset.hold;S.nb.held[j]=!S.nb.held[j];sfx('click');save();renderBlocks();renderGo()};
+$('nbTake').onclick=()=>{if(S.nb&&!busy)finishBlocks()};
+
+/* ---- 림보 ---- */
 const lTarget=()=>Math.min(1000,Math.max(1.01,Math.round((+$('lTarget').value||2)*100)/100));
 function renderLimbo(){
   const t=lTarget();
@@ -580,8 +696,9 @@ function renderGo(){
   const g=S.game,b=bet(),M=S.mines,live=g==='mines'&&M&&!M.over;
   const go=$('go');
   if(live){go.disabled=!M.open.length;go.textContent=M.open.length?`캐시아웃 ${fmt(M.b*minesMult(M.k,M.open.length))}`:'칸을 하나 이상 여세요';return}
+  if(g==='blocks'&&S.nb){go.disabled=busy;go.textContent=S.nb.held.every(Boolean)?'결과 받기':'한 번 더 돌리기 (무료)';return}
   go.disabled=busy||b>S.bal;
-  go.textContent=b>S.bal?'코인이 부족해요':{dice:'굴리기',coin:'던지기',mines:'게임 시작',slots:'스핀',roulette:'룰렛 돌리기',limbo:'시작'}[g];
+  go.textContent=b>S.bal?'코인이 부족해요':{dice:'굴리기',coin:'던지기',mines:'게임 시작',slots:'스핀',roulette:'룰렛 돌리기',limbo:'시작',blocks:'스핀'}[g];
   $('bet').disabled=false;
 }
 function renderOdds(){
@@ -596,7 +713,7 @@ function renderTabs(){
   document.querySelectorAll('.game').forEach(g=>g.hidden=g.id!=='g-'+S.game);
   document.querySelectorAll('[data-side]').forEach(x=>x.classList.toggle('on',+x.dataset.side===S.side));
 }
-function renderAll(){renderLimbo();renderBal();renderHist();renderTickets();renderOdds();renderMines();renderTabs();renderGo()}
+function renderAll(){renderLimbo();renderBlocks();renderBal();renderHist();renderTickets();renderOdds();renderMines();renderTabs();renderGo()}
 function tick(){
   const ms=Math.max(0,S.end-Date.now()),d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5),m=Math.floor(ms%36e5/6e4);
   $('left').textContent=ms?`${d}일 ${h}시간 ${m}분`:'종료';
@@ -605,8 +722,9 @@ function play(){
   if(busy)return;
   const M=S.mines;
   if(S.game==='mines'&&M&&!M.over){cashOut();return}
+  if(S.game==='blocks'&&S.nb){respinBlocks();return}
   const b=bet();if(b>S.bal)return;
-  ({dice:playDice,coin:playCoin,mines:startMines,slots:playSlots,roulette:playRoulette,limbo:playLimbo})[S.game](b);
+  ({dice:playDice,coin:playCoin,mines:startMines,slots:playSlots,roulette:playRoulette,limbo:playLimbo,blocks:startBlocks})[S.game](b);
 }
 
 $('mineCount').innerHTML=Array.from({length:24},(_,i)=>`<option value="${i+1}" ${i===2?'selected':''}>${i+1}개</option>`).join('');
@@ -618,6 +736,7 @@ $('field').onclick=e=>{const c=e.target.closest('[data-i]');if(c)pick(+c.dataset
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   if(busy)return;
   if(S.mines&&!S.mines.over&&t.dataset.g!=='mines'){toast('진행 중인 지뢰찾기를 먼저 끝내세요');return}
+  if(S.nb&&t.dataset.g!=='blocks'){toast('진행 중인 9칸 블록을 먼저 끝내세요');return}
   S.game=t.dataset.g;save();renderAll();
 });
 document.querySelectorAll('[data-side]').forEach(x=>x.onclick=()=>{S.side=+x.dataset.side;save();renderTabs()});
