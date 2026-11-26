@@ -41,8 +41,14 @@ h2{font-size:22px;margin:0 0 12px}
 .demo{font-size:13px;color:var(--dim);border:1px dashed var(--line);border-radius:8px;padding:6px 10px}
 .grid{display:grid;gap:20px;padding-bottom:48px}
 @media(min-width:900px){.grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr);align-items:start}.machine{position:sticky;top:76px}}
-.tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;background:#0a0d10;border:1px solid var(--line);border-radius:12px;padding:5px}
+.lv{font-weight:700;font-size:clamp(60px,12vw,96px);line-height:1;letter-spacing:-.03em}
+.lvbar{height:10px;border-radius:99px;background:var(--panel2);overflow:hidden;margin-top:16px}
+.lvbar i{display:block;height:100%;width:0;background:var(--dim);border-radius:99px}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.presets .ghost{flex:1 1 0;min-height:36px;font-size:14px;padding:0 6px}
+.tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;background:#0a0d10;border:1px solid var(--line);border-radius:12px;padding:5px}
 .tab{background:transparent;min-height:44px;padding:0 6px;white-space:nowrap;font-size:15px}
+@media(max-width:520px){.tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .tab[aria-selected=true]{background:var(--panel2);color:var(--win)}
 .machine{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;display:grid;gap:16px}
 .screen{background:#0a0d10;border:1px solid var(--line);border-radius:14px;padding:18px 16px 16px;text-align:center}
@@ -143,7 +149,7 @@ footer{border-top:1px solid var(--line);color:var(--dim);font-size:13px;padding-
   <div class="head">
     <div>
       <h1>게임 &amp; 주간 챌린지</h1>
-      <p class="sub">다섯 가지 게임으로 미션을 깨고 보너스 코인을 받으세요. 남은 시간 <b class="num" id="left">–</b></p>
+      <p class="sub">여섯 가지 게임으로 미션을 깨고 보너스 코인을 받으세요. 남은 시간 <b class="num" id="left">–</b></p>
     </div>
     <div class="demo">연습용 데모 · 가상 코인만 사용하며 실제 돈은 오가지 않습니다</div>
   </div>
@@ -153,6 +159,7 @@ footer{border-top:1px solid var(--line);color:var(--dim);font-size:13px;padding-
       <div class="tabs" role="tablist">
         <button class="btn tab" role="tab" data-g="slots">슬롯</button>
         <button class="btn tab" role="tab" data-g="roulette">룰렛</button>
+        <button class="btn tab" role="tab" data-g="limbo">리비티</button>
         <button class="btn tab" role="tab" data-g="dice">주사위</button>
         <button class="btn tab" role="tab" data-g="coin">동전</button>
         <button class="btn tab" role="tab" data-g="mines">지뢰</button>
@@ -165,6 +172,25 @@ footer{border-top:1px solid var(--line);color:var(--dim);font-size:13px;padding-
           <div class="verdict" id="sVerdict" aria-live="polite">같은 그림 3개가 나오면 당첨</div>
         </div>
         <div style="margin-top:16px"><span class="lab">당첨표 (베팅 금액 × 배당)</span><div class="paytbl" id="paytbl"></div></div>
+      </div>
+
+      <!-- LIMBO-style "리비티" -->
+      <div id="g-limbo" class="game" hidden>
+        <div class="screen">
+          <div class="lv num" id="lvNum">1.00x</div>
+          <div class="lvbar" aria-hidden="true"><i id="lvBar"></i></div>
+          <div class="verdict" id="lVerdict" aria-live="polite">숫자가 목표 배수 이상까지 올라가면 승리</div>
+        </div>
+        <div class="stats" style="margin-top:16px">
+          <div class="stat"><span>목표 배수</span><b class="num" id="lTgt">2.00x</b></div>
+          <div class="stat"><span>당첨 확률</span><b class="num" id="lChance">49.5%</b></div>
+          <div class="stat"><span>이기면 받는 코인</span><b class="num" id="lWin">20</b></div>
+        </div>
+        <div style="margin-top:16px">
+          <label for="lTarget">목표 배수 (1.01 ~ 1000)</label>
+          <div class="row betrow"><input id="lTarget" class="num" type="number" min="1.01" max="1000" step="0.01" value="2.00" inputmode="decimal"></div>
+          <div class="presets" id="lPre"><button class="btn ghost" data-t="1.5">1.5x</button><button class="btn ghost" data-t="2">2x</button><button class="btn ghost" data-t="5">5x</button><button class="btn ghost" data-t="10">10x</button><button class="btn ghost" data-t="100">100x</button></div>
+        </div>
       </div>
 
       <!-- ROULETTE -->
@@ -457,6 +483,41 @@ function playSlots(b){
   [0,1,2].forEach(j=>setTimeout(()=>{stopped=j+1;reelNow[j]=res[j];reels[j].classList.remove('spin');drawReels();sfx('stop');if(j===2)finish()},500+j*400));
 }
 
+/* ---- 리비티 (limbo-style) ---- */
+const lTarget=()=>Math.min(1000,Math.max(1.01,Math.round((+$('lTarget').value||2)*100)/100));
+function renderLimbo(){
+  const t=lTarget();
+  $('lTgt').textContent=t.toFixed(2)+'x';
+  $('lChance').textContent=(99/t).toFixed(t>=100?3:1)+'%';
+  $('lWin').textContent=fmt(bet()*t);
+}
+$('lTarget').oninput=renderLimbo;
+$('lTarget').onblur=()=>{$('lTarget').value=lTarget().toFixed(2);renderLimbo()};
+$('lPre').onclick=e=>{const x=e.target.closest('[data-t]');if(!x||busy)return;$('lTarget').value=(+x.dataset.t).toFixed(2);renderLimbo();sfx('click')};
+function playLimbo(b){
+  busy=true;$('go').disabled=true;S.bal-=b;renderBal();
+  const t=lTarget(),u=Math.random();
+  const res=Math.max(1,Math.floor(99/(100*(1-u))*100)/100);  // 1% house edge, P(res>=t)=0.99/t
+  const w=res>=t,el=$('lvNum'),bar=$('lvBar');
+  el.className='lv num';bar.style.background='var(--dim)';
+  $('lVerdict').textContent='올라가는 중…';
+  const fast=matchMedia('(prefers-reduced-motion:reduce)').matches,dur=fast?0:Math.min(1400,500+Math.log(res)*220);
+  const t0=performance.now(),cap=Math.max(res,t);
+  let lastTick=0;
+  const step=now=>{
+    const p=dur?Math.min(1,(now-t0)/dur):1,v=Math.exp(Math.log(res)*(1-(1-p)**3));
+    el.textContent=v.toFixed(2)+'x';
+    bar.style.width=Math.min(100,Math.log(v)/Math.log(cap)*100||0)+'%';
+    if(now-lastTick>70&&p<1){lastTick=now;sfx('tick')}
+    if(p<1){requestAnimationFrame(step);return}
+    el.className='lv num '+(w?'w':'l');bar.style.background=w?'var(--win)':'var(--loss)';
+    const pay=w?Math.floor(b*t):0;busy=false;
+    $('lVerdict').innerHTML=`<span class="${w?'w':'l'}">결과 ${res.toFixed(2)}x · ${w?'승리! +'+fmt(pay-b):'목표 '+t.toFixed(2)+'x 미달 −'+fmt(b)} 코인</span>`;
+    settle(b,pay,t,res.toFixed(2)+'x');
+  };
+  requestAnimationFrame(step);
+}
+
 /* ---- roulette ---- */
 const RED=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
 const ORDER=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
@@ -520,7 +581,7 @@ function renderGo(){
   const go=$('go');
   if(live){go.disabled=!M.open.length;go.textContent=M.open.length?`캐시아웃 ${fmt(M.b*minesMult(M.k,M.open.length))}`:'칸을 하나 이상 여세요';return}
   go.disabled=busy||b>S.bal;
-  go.textContent=b>S.bal?'코인이 부족해요':{dice:'굴리기',coin:'던지기',mines:'게임 시작',slots:'스핀',roulette:'룰렛 돌리기'}[g];
+  go.textContent=b>S.bal?'코인이 부족해요':{dice:'굴리기',coin:'던지기',mines:'게임 시작',slots:'스핀',roulette:'룰렛 돌리기',limbo:'시작'}[g];
   $('bet').disabled=false;
 }
 function renderOdds(){
@@ -535,7 +596,7 @@ function renderTabs(){
   document.querySelectorAll('.game').forEach(g=>g.hidden=g.id!=='g-'+S.game);
   document.querySelectorAll('[data-side]').forEach(x=>x.classList.toggle('on',+x.dataset.side===S.side));
 }
-function renderAll(){renderBal();renderHist();renderTickets();renderOdds();renderMines();renderTabs();renderGo()}
+function renderAll(){renderLimbo();renderBal();renderHist();renderTickets();renderOdds();renderMines();renderTabs();renderGo()}
 function tick(){
   const ms=Math.max(0,S.end-Date.now()),d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5),m=Math.floor(ms%36e5/6e4);
   $('left').textContent=ms?`${d}일 ${h}시간 ${m}분`:'종료';
@@ -545,7 +606,7 @@ function play(){
   const M=S.mines;
   if(S.game==='mines'&&M&&!M.over){cashOut();return}
   const b=bet();if(b>S.bal)return;
-  ({dice:playDice,coin:playCoin,mines:startMines,slots:playSlots,roulette:playRoulette})[S.game](b);
+  ({dice:playDice,coin:playCoin,mines:startMines,slots:playSlots,roulette:playRoulette,limbo:playLimbo})[S.game](b);
 }
 
 $('mineCount').innerHTML=Array.from({length:24},(_,i)=>`<option value="${i+1}" ${i===2?'selected':''}>${i+1}개</option>`).join('');
