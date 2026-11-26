@@ -167,7 +167,7 @@ footer{border-top:1px solid var(--line);color:var(--dim);font-size:13px;padding-
 
 <header><div class="wrap bar">
   <div class="logo">HORI<b>KOO</b></div>
-  <div class="hdr"><button class="btn ghost snd" id="snd" aria-pressed="true" title="효과음 켜기/끄기"></button>
+  <div class="hdr"><button class="btn ghost snd" id="bgm" aria-pressed="true" title="배경음 켜기/끄기"></button><button class="btn ghost snd" id="snd" aria-pressed="true" title="효과음 켜기/끄기"></button>
   <div class="bal"><span class="coin" aria-hidden="true"></span><span class="num" id="bal">0</span><button class="btn ghost small" id="reset" title="잔액과 진행 상황을 처음으로 되돌립니다">초기화</button></div></div>
 </div></header>
 
@@ -398,6 +398,66 @@ const SPK_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 const SPK_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
 function renderSnd(){const on=S.sound!==false;$('snd').innerHTML=on?SPK_ON:SPK_OFF;$('snd').setAttribute('aria-pressed',on);$('snd').setAttribute('aria-label',on?'효과음 끄기':'효과음 켜기')}
 $('snd').onclick=()=>{S.sound=S.sound===false;save();renderSnd();sfx('click')};
+
+/* ---- background: pachinko-parlor style loop (ball rattle + bright chiptune), all synthesized ---- */
+const BGM={on:false,timer:null,out:null,rattle:null,next:0,step:0};
+const NOTE=n=>440*2**((n-69)/12);
+// 4 bars: C - Am - F - G, 16 sixteenths each; melody in major pentatonic
+const PROG=[[60,64,67],[57,60,64],[53,57,60],[55,59,62]];
+const MEL=[84,null,81,79,76,null,79,81,84,86,null,84,81,null,79,null, 81,null,79,76,72,null,76,79,81,null,84,null,79,76,null,null,
+           77,null,81,84,86,null,84,81,77,null,79,81,84,null,null,null, 79,83,86,null,83,79,null,86,88,null,86,83,91,null,null,null];
+function bgmVoice(f,t,d,type,g){
+  const a=AC,o=a.createOscillator(),v=a.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t);
+  v.gain.setValueAtTime(0,t);v.gain.linearRampToValueAtTime(g,t+.005);v.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(v).connect(BGM.out);o.start(t);o.stop(t+d+.02);
+}
+function bgmSchedule(){
+  const a=AC,spb=60/150/4; // 150 bpm sixteenths
+  while(BGM.next<a.currentTime+.25){
+    const t=BGM.next,s=BGM.step%64,bar=Math.floor(s/16),ch=PROG[bar];
+    if(s%4===0)bgmVoice(NOTE(ch[0]-24),t,.22,'triangle',.5);                       // bass on beats
+    if(s%2===0)bgmVoice(NOTE(ch[(s/2)%3]+12),t,.09,'square',.07);                    // fast arpeggio
+    if(MEL[s])bgmVoice(NOTE(MEL[s]),t,.16,'square',.12);                             // lead
+    if(s%4===2){bgmVoice(7000,t,.03,'square',.03)}                                   // off-beat hat
+    for(let k=0;k<3;k++)if(Math.random()<.55)bgmVoice(2600+Math.random()*3400,t+Math.random()*spb,.018,'sine',.05+Math.random()*.06); // steel balls clicking
+    BGM.next+=spb;BGM.step++;
+  }
+}
+function startBgm(){
+  if(BGM.on||S.bgm===false||S.sound===false)return;
+  const a=ac();if(!a)return;
+  try{
+    BGM.out=a.createGain();BGM.out.gain.value=.0001;BGM.out.connect(a.destination);
+    BGM.out.gain.linearRampToValueAtTime(.16,a.currentTime+1.2);
+    // constant ball-rattle bed: looping noise through a metallic band-pass
+    const len=a.sampleRate*2,buf=a.createBuffer(1,len,a.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(Math.random()<.04?1:.25);
+    const src=a.createBufferSource(),bp=a.createBiquadFilter(),g=a.createGain();
+    src.buffer=buf;src.loop=true;bp.type='bandpass';bp.frequency.value=4200;bp.Q.value=1.4;g.gain.value=.22;
+    src.connect(bp).connect(g).connect(BGM.out);src.start();BGM.rattle=src;
+    BGM.next=a.currentTime+.05;BGM.step=0;BGM.on=true;
+    BGM.timer=setInterval(bgmSchedule,60);bgmSchedule();
+  }catch(e){stopBgm()}
+}
+function stopBgm(){
+  clearInterval(BGM.timer);BGM.timer=null;
+  try{BGM.rattle&&BGM.rattle.stop()}catch(e){}
+  try{BGM.out&&BGM.out.disconnect()}catch(e){}
+  BGM.rattle=null;BGM.out=null;BGM.on=false;
+}
+const NOTE_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5" fill="currentColor"/><circle cx="17.5" cy="16" r="2.5" fill="currentColor"/></svg>';
+const NOTE_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5" fill="currentColor"/><circle cx="17.5" cy="16" r="2.5" fill="currentColor"/><path d="M3 3l18 18"/></svg>';
+function renderBgm(){const on=S.bgm!==false&&S.sound!==false;$('bgm').innerHTML=on?NOTE_ON:NOTE_OFF;$('bgm').setAttribute('aria-pressed',on);$('bgm').setAttribute('aria-label',on?'배경음 끄기':'배경음 켜기')}
+$('bgm').onclick=()=>{
+  if(S.sound===false){S.sound=true;S.bgm=true}else S.bgm=S.bgm===false;
+  save();renderSnd();renderBgm();
+  if(S.bgm!==false)startBgm();else stopBgm();
+};
+$('snd').addEventListener('click',()=>{renderBgm();if(S.sound===false)stopBgm();else startBgm()});
+// browsers only allow audio after the first tap/click/key, so start the loop then
+['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>startBgm(),{passive:true}));
+document.addEventListener('visibilitychange',()=>{try{if(!AC)return;document.hidden?AC.suspend():AC.resume()}catch(e){}});
 
 let tt;
 function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2200)}
@@ -813,7 +873,7 @@ function start(){
   }
   S.rBet??='red';S.rNum??=7;$('rNum').value=S.rNum;
   S.peak=Math.max(S.peak||START,S.bal);
-  renderBets();drawReels();renderAll();renderSnd();renderBoard();tick();
+  renderBets();drawReels();renderAll();renderSnd();renderBgm();renderBoard();tick();
 }
 S=load();
 window.claude?.hot?.snapshot?.(()=>S);
