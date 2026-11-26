@@ -176,31 +176,41 @@
     g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
     o.connect(g); g.connect(master); o.start(t0); o.stop(t0 + dur + .02);
   }
-  // short filtered noise burst = mechanical "clunk"
-  function noise(at = 0, dur = .05, vol = .25, freq = 900) {
+  // short filtered noise burst (type: lowpass = thunk, highpass = click)
+  function noise(at = 0, dur = .05, vol = .25, freq = 900, type = 'lowpass') {
     const a = audio(); if (!a) return;
-    const len = Math.floor(a.sampleRate * dur), buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const len = Math.max(1, Math.floor(a.sampleRate * dur)), buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
     const src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
-    f.type = 'lowpass'; f.frequency.value = freq; g.gain.value = vol;
+    f.type = type; f.frequency.value = freq; g.gain.value = vol;
     src.buffer = buf; src.connect(f); f.connect(g); g.connect(master); src.start(a.currentTime + at);
   }
+  // metallic bell: inharmonic partials with a long ring
+  function bell(at = 0, freq = 1800, dur = .6, vol = .05) {
+    [[1, 1], [2.76, .5], [5.4, .25], [8.93, .12]].forEach(([r, v]) => tone(freq * r, at, dur / Math.sqrt(r), 'sine', vol * v));
+  }
+  // coin clink: two bright partials, slightly random pitch
+  function coin(at = 0, vol = .05) {
+    const f = 2600 + Math.random() * 900;
+    tone(f, at, .09, 'sine', vol); tone(f * 1.48, at, .06, 'sine', vol * .6); noise(at, .012, .08, 5000, 'highpass');
+  }
   const SFX = {
-    coin()   { tone(988, 0, .09, 'square', .06); tone(1319, .09, .35, 'square', .06); },
-    bet()    { tone(1568, 0, .04, 'square', .04); },
-    play()   { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * .05, .07, 'square', .05)); },
-    // the rolling "dee-dee-dee" while reels spin
-    spinStep(i) { const pat = [784, 1047, 1175, 1047, 880, 1047, 1319, 1047]; tone(pat[i % pat.length], 0, .045, 'square', .022); },
-    stop(n)  { noise(0, .06, .35, 700); tone(150, 0, .09, 'square', .07, 70); tone(1320 + n * 120, .03, .06, 'triangle', .05); },
-    blockDone() { [880, 1175, 1568].forEach((f, i) => tone(f, .08 + i * .06, .08, 'triangle', .06)); },
-    lose()   { tone(392, 0, .16, 'square', .045, 330); tone(330, .17, .28, 'square', .045, 196); },
-    win()    { [784, 988, 1175, 1568, 1175, 1568].forEach((f, i) => tone(f, i * .09, .12, 'square', .05)); },
-    skill()  { for (let k = 0; k < 3; k++) tone(600, k * .22, .2, 'sawtooth', .04, 1400); },
+    coin()   { for (let i = 0; i < 4; i++) coin(i * .07, .06); },
+    bet()    { coin(0, .05); },
+    play()   { noise(0, .18, .2, 300); tone(90, 0, .25, 'sawtooth', .04, 160); },     // lever pull + motor start
+    // mechanical reel spin: ratchet clicks over a low motor whir
+    spinStep(i) { noise(0, .012, .18, 3500, 'highpass'); if (i % 3 === 0) tone(110, 0, .09, 'sawtooth', .012); },
+    stop(n)  { noise(0, .09, .55, 380); tone(110, 0, .14, 'sine', .14, 45); noise(.02, .015, .12, 4000, 'highpass'); },
+    blockDone() { bell(.1, 2200, .35, .035); },
+    lose()   { tone(220, 0, .35, 'triangle', .04, 150); },
+    // bells ring rapidly while the win is announced
+    win(big) { const n = big ? 24 : 10; for (let i = 0; i < n; i++) bell(i * .085, i % 2 ? 1760 : 1960, .4, .045); },
+    skill()  { [1047, 1319, 1568, 2093].forEach((f, i) => tone(f, i * .1, .14, 'square', .045)); },
     jackpot() {
-      for (let k = 0; k < 6; k++) tone(500, k * .18, .17, 'square', .05, 1600);          // siren
-      [1047, 1319, 1568, 2093, 1568, 2093, 2637].forEach((f, i) => tone(f, 1.1 + i * .12, .16, 'triangle', .08));
+      for (let i = 0; i < 40; i++) bell(i * .075, i % 2 ? 1760 : 2093, .45, .05);        // non-stop bells
+      [523, 659, 784, 1047, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, .2 + i * .16, .18, 'square', .045));
     },
-    count(i) { tone(i % 2 ? 1760 : 1480, 0, .025, 'square', .03); },   // credit count-up tick
+    count()  { coin(0, .045); },          // a coin drops for every credit paid out
   };
   function setMuted(m) {
     muted = m; try { localStorage.setItem('starStopMuted', m ? '1' : '0'); } catch (e) {}
@@ -275,7 +285,7 @@
     if (nineAny) parts.push('★ 9 ALIKE BLOCK ×10 ★');
     if (bonus) parts.push(`${skillBlocks} SKILL BLOCKS +${bonus}`);
     if (total > 0) { msg.textContent = (parts.length ? parts.join(' · ') + ' — ' : '') + `WIN ${total}!`; flash = 90; 
-      if (nineAny) SFX.jackpot(); else if (bonus) { SFX.skill(); setTimeout(SFX.win, 700); } else SFX.win();
+      if (nineAny) SFX.jackpot(); else if (bonus) { SFX.skill(); SFX.win(true); } else SFX.win(total >= 15 * bet);
     }
     else { msg.textContent = 'No win — try again! (다시 도전!)'; SFX.lose(); }
     updateHud();
@@ -355,10 +365,10 @@
     if (finished && roundActive && blocks.every(b => b.reels.every(r => !r.spinning))) evaluate();
     // rolling spin jingle while any reel is still free-spinning
     if (roundActive && blocks.some(b => b.reels.some(r => r.spinning && r.target === null))) {
-      if (++spinClock % 5 === 0) SFX.spinStep(spinIdx++);
+      if (++spinClock % 3 === 0) SFX.spinStep(spinIdx++);
     }
     // credits count up one by one with a tick, like the real cabinets
-    if (shownCredits < credits) { shownCredits++; if (++countIdx % 2 === 0) SFX.count(countIdx / 2); }
+    if (shownCredits < credits) { shownCredits++; if (++countIdx % 3 === 0) SFX.count(); }
     else if (shownCredits > credits) shownCredits = credits;
     creditsEl.textContent = shownCredits;
     if (flash > 0) flash--;
