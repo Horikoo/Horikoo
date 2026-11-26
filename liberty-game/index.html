@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Liberty Flight</title>
+<style>
+  :root { --bg:#0b1630; --ink:#f5f1e6; --gold:#ffcf4a; --red:#e2493b; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; overflow:hidden;
+    touch-action:none; user-select:none; -webkit-user-select:none; }
+  canvas { display:block; width:100vw; height:100vh; }
+  #overlay { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; text-align:center; padding:16px; background:rgba(6,12,28,.72); }
+  #overlay.hidden { display:none; }
+  h1 { font-size:clamp(34px,8vw,64px); margin:0 0 8px; letter-spacing:2px; color:var(--gold);
+    text-shadow:0 3px 0 #8a5a00; }
+  p { max-width:460px; line-height:1.5; margin:6px 0; opacity:.92; }
+  .ko { font-size:14px; opacity:.75; }
+  button { margin-top:18px; font-size:20px; font-weight:700; padding:12px 34px; border:0;
+    border-radius:999px; background:var(--red); color:#fff; cursor:pointer;
+    box-shadow:0 4px 0 #8f2219; }
+  button:active { transform:translateY(3px); box-shadow:0 1px 0 #8f2219; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="overlay">
+  <h1 id="title">LIBERTY FLIGHT</h1>
+  <p id="msg">Fly the eagle over the harbor. Collect <b>50 stars</b> to light the torch of freedom.
+     Dodge the storm clouds and their lightning!</p>
+  <p class="ko" id="msgKo">독수리를 날려 별 50개를 모으면 자유의 횃불이 켜집니다. 먹구름과 번개를 피하세요!</p>
+  <p class="ko">Tap / Click / Space = flap (날갯짓) · P = pause</p>
+  <button id="btn">START</button>
+</div>
+<script>
+(() => {
+  const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+  const overlay = document.getElementById('overlay'), btn = document.getElementById('btn');
+  const titleEl = document.getElementById('title'), msgEl = document.getElementById('msg'),
+        msgKoEl = document.getElementById('msgKo');
+  let W, H, DPR;
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight;
+    cv.width = W * DPR; cv.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  addEventListener('resize', resize); resize();
+
+  const GOAL = 50;
+  let best = 0; try { best = +localStorage.getItem('libertyBest') || 0; } catch (e) {}
+  let state = 'menu', eagle, stars, clouds, bolts, sparks, score, lives, speed, t, spawnT, cloudT, invuln, paused = false;
+
+  // background skyline stars (static twinkle)
+  const sky = Array.from({length: 90}, () => ({x: Math.random(), y: Math.random() * .6, r: Math.random() * 1.4 + .3, p: Math.random() * 6}));
+
+  function reset() {
+    eagle = { x: W * .25, y: H * .45, vy: 0, flap: 0 };
+    stars = []; clouds = []; bolts = []; sparks = [];
+    score = 0; lives = 3; speed = 3.2; t = 0; spawnT = 0; cloudT = 60; invuln = 90;
+  }
+
+  function flap() {
+    if (state !== 'play' || paused) return;
+    eagle.vy = -7.2; eagle.flap = 12;
+  }
+  addEventListener('pointerdown', e => { if (e.target === cv) flap(); });
+  addEventListener('keydown', e => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); if (state === 'play') flap(); else start(); }
+    if (e.code === 'KeyP' && state === 'play') paused = !paused;
+  });
+  btn.addEventListener('click', start);
+
+  function start() { reset(); state = 'play'; paused = false; overlay.classList.add('hidden'); }
+
+  function end(win) {
+    state = win ? 'win' : 'over';
+    if (score > best) { best = score; try { localStorage.setItem('libertyBest', best); } catch (e) {} }
+    titleEl.textContent = win ? 'TORCH LIT!' : 'GAME OVER';
+    msgEl.innerHTML = win
+      ? `You collected all ${GOAL} stars and lit the torch of freedom! 🗽`
+      : `Stars: <b>${score}</b> / ${GOAL} &nbsp;·&nbsp; Best: <b>${best}</b>`;
+    msgKoEl.textContent = win ? '축하합니다! 자유의 횃불을 밝혔습니다!' : `모은 별: ${score}개 · 최고 기록: ${best}개`;
+    btn.textContent = 'PLAY AGAIN';
+    setTimeout(() => overlay.classList.remove('hidden'), win ? 1200 : 400);
+  }
+
+  function hit() {
+    if (invuln > 0) return;
+    lives--; invuln = 100;
+    burst(eagle.x, eagle.y, '#ff6a5a', 22);
+    if (lives <= 0) end(false);
+  }
+
+  function burst(x, y, color, n) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, s = Math.random() * 4 + 1;
+      sparks.push({x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 40, color});
+    }
+  }
+
+  function update() {
+    t++;
+    // eagle physics
+    eagle.vy = Math.min(eagle.vy + .38, 9);
+    eagle.y += eagle.vy;
+    if (eagle.flap > 0) eagle.flap--;
+    if (invuln > 0) invuln--;
+    const water = H * .86;
+    if (eagle.y < 20) { eagle.y = 20; eagle.vy = 0; }
+    if (eagle.y > water - 14) { eagle.y = water - 14; eagle.vy = -6; hit(); }
+
+    speed = 3.2 + score * .06;
+
+    // spawn stars
+    if (--spawnT <= 0) {
+      spawnT = 38 + Math.random() * 30;
+      stars.push({ x: W + 30, y: 60 + Math.random() * (water - 140), r: 13, spin: Math.random() * 6 });
+    }
+    // spawn clouds
+    if (--cloudT <= 0) {
+      cloudT = Math.max(55, 130 - score * 1.5) + Math.random() * 50;
+      const y = 50 + Math.random() * (water - 200);
+      clouds.push({ x: W + 90, y, w: 90 + Math.random() * 50, boltT: 50 + Math.random() * 80, wob: Math.random() * 6 });
+    }
+
+    for (const s of stars) { s.x -= speed; s.spin += .08;
+      if (Math.hypot(s.x - eagle.x, s.y - eagle.y) < s.r + 18) { s.got = true; score++; burst(s.x, s.y, '#ffd75a', 12);
+        if (score >= GOAL) end(true); }
+    }
+    stars = stars.filter(s => !s.got && s.x > -30);
+
+    for (const c of clouds) {
+      c.x -= speed * .85; c.wob += .03;
+      const cy = c.y + Math.sin(c.wob) * 8;
+      // cloud body collision (ellipse)
+      const dx = (eagle.x - c.x) / (c.w * .55), dy = (eagle.y - cy) / 30;
+      if (dx * dx + dy * dy < 1) hit();
+      if (--c.boltT <= 0 && c.x < W && c.x > 0) {
+        c.boltT = 110 + Math.random() * 80;
+        bolts.push({ x: c.x + (Math.random() - .5) * c.w * .5, y: cy + 25, warn: 30, life: 22 });
+      }
+    }
+    clouds = clouds.filter(c => c.x > -200);
+
+    for (const b of bolts) {
+      b.x -= speed * .85;
+      if (b.warn > 0) b.warn--; else {
+        b.life--;
+        if (Math.abs(eagle.x - b.x) < 16 && eagle.y > b.y) hit();
+      }
+    }
+    bolts = bolts.filter(b => b.life > 0);
+
+    for (const p of sparks) { p.x += p.vx; p.y += p.vy; p.vy += .1; p.life--; }
+    sparks = sparks.filter(p => p.life > 0);
+  }
+
+  // ---------- drawing ----------
+  function drawStar(x, y, r, rot, fill) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const rr = i % 2 ? r * .45 : r, a = i * Math.PI / 5 - Math.PI / 2;
+      ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+    }
+    ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); ctx.restore();
+  }
+
+  function drawBackground() {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#0b1630'); g.addColorStop(.6, '#253a6b'); g.addColorStop(.86, '#c8735a');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    for (const s of sky) {
+      ctx.globalAlpha = .4 + .4 * Math.sin(t * .03 + s.p);
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(s.x * W, s.y * H, s.r, 0, 7); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // city skyline (parallax)
+    const water = H * .86, off = (t * .6) % 80;
+    ctx.fillStyle = '#16213f';
+    for (let i = -1; i < W / 80 + 2; i++) {
+      const h = 40 + ((i * 37 + Math.floor((t * .6) / 80) * 37) % 7) * 14;
+      ctx.fillRect(i * 80 - off, water - h, 62, h);
+    }
+
+    // statue on island (right side, stylised, original drawing)
+    const sx = W * .82, base = water;
+    ctx.fillStyle = '#2f6f62';
+    ctx.fillRect(sx - 40, base - 30, 80, 30);          // pedestal
+    ctx.fillRect(sx - 26, base - 60, 52, 30);
+    ctx.beginPath(); ctx.moveTo(sx - 20, base - 60); ctx.lineTo(sx - 12, base - 150);
+    ctx.lineTo(sx + 12, base - 150); ctx.lineTo(sx + 20, base - 60); ctx.fill(); // robe
+    ctx.beginPath(); ctx.arc(sx, base - 160, 11, 0, 7); ctx.fill();             // head
+    for (let i = -2; i <= 2; i++) {                                              // crown rays
+      ctx.save(); ctx.translate(sx, base - 166); ctx.rotate(i * .35);
+      ctx.fillRect(-1.5, -18, 3, 12); ctx.restore();
+    }
+    ctx.save(); ctx.translate(sx + 10, base - 148); ctx.rotate(-.25);
+    ctx.fillRect(0, -50, 7, 50); ctx.restore();                                  // raised arm
+    // torch flame grows with score
+    const fx = sx + 4, fy = base - 202, lit = score / GOAL;
+    ctx.fillStyle = '#c9a43a'; ctx.fillRect(fx - 6, fy, 12, 8);
+    if (lit > 0) {
+      const fr = 6 + lit * 18 + Math.sin(t * .3) * 2;
+      const glow = ctx.createRadialGradient(fx, fy - 4, 0, fx, fy - 4, fr * 4);
+      glow.addColorStop(0, `rgba(255,200,80,${.35 + lit * .4})`); glow.addColorStop(1, 'rgba(255,200,80,0)');
+      ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(fx, fy - 4, fr * 4, 0, 7); ctx.fill();
+      ctx.fillStyle = '#ffb02e'; ctx.beginPath(); ctx.ellipse(fx, fy - fr * .6, fr * .55, fr, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#fff3b0'; ctx.beginPath(); ctx.ellipse(fx, fy - fr * .45, fr * .25, fr * .55, 0, 0, 7); ctx.fill();
+    }
+
+    // water
+    ctx.fillStyle = '#123257'; ctx.fillRect(0, water, W, H - water);
+    ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 2;
+    for (let y = water + 10; y < H; y += 16) {
+      ctx.beginPath();
+      for (let x = 0; x <= W; x += 20) ctx.lineTo(x, y + Math.sin((x + t * 2 + y) * .05) * 3);
+      ctx.stroke();
+    }
+  }
+
+  function drawEagle() {
+    if (invuln > 0 && Math.floor(invuln / 6) % 2) return;
+    const {x, y} = eagle, tilt = Math.max(-.5, Math.min(.6, eagle.vy * .06));
+    const wing = eagle.flap > 0 ? -1 : Math.sin(t * .25) * .3;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(tilt);
+    ctx.fillStyle = '#5a3418';
+    ctx.beginPath(); ctx.ellipse(0, 0, 22, 10, 0, 0, 7); ctx.fill();            // body
+    ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(-34, -7); ctx.lineTo(-34, 7); ctx.fill(); // tail
+    ctx.save(); ctx.rotate(wing);                                                  // wing
+    ctx.fillStyle = '#3d220e';
+    ctx.beginPath(); ctx.moveTo(-8, -2); ctx.quadraticCurveTo(-4, -34, 14, -30); ctx.lineTo(8, -2); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(20, -4, 9, 0, 7); ctx.fill(); // head
+    ctx.fillStyle = '#ffb81c'; ctx.beginPath(); ctx.moveTo(27, -6); ctx.lineTo(36, -1); ctx.lineTo(26, 1); ctx.fill(); // beak
+    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(22, -6, 1.8, 0, 7); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawCloud(c) {
+    const cy = c.y + Math.sin(c.wob) * 8, w = c.w;
+    ctx.fillStyle = '#3b3f52';
+    for (const [ox, oy, r] of [[-.35, 5, .28], [0, -8, .38], [.33, 4, .3], [.12, 10, .3], [-.15, 10, .3]]) {
+      ctx.beginPath(); ctx.arc(c.x + ox * w, cy + oy, r * w, 0, 7); ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(255,255,255,.08)';
+    ctx.beginPath(); ctx.arc(c.x - .05 * w, cy - 14, .22 * w, 0, 7); ctx.fill();
+  }
+
+  function drawBolt(b) {
+    const bottom = H * .86;
+    if (b.warn > 0) {
+      ctx.strokeStyle = `rgba(255,240,120,${b.warn % 8 < 4 ? .55 : .15})`;
+      ctx.setLineDash([6, 8]); ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x, bottom); ctx.stroke(); ctx.setLineDash([]);
+      return;
+    }
+    ctx.strokeStyle = '#fff59a'; ctx.lineWidth = 4; ctx.shadowColor = '#fff'; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.moveTo(b.x, b.y);
+    for (let y = b.y; y < bottom; y += 24) ctx.lineTo(b.x + (Math.random() - .5) * 18, y);
+    ctx.stroke(); ctx.shadowBlur = 0;
+  }
+
+  function drawHUD() {
+    ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(12, 12, 210, 54);
+    drawStar(32, 39, 11, 0, '#ffd75a');
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 20px system-ui, sans-serif';
+    ctx.fillText(`${score} / ${GOAL}`, 50, 46);
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = i < lives ? '#e2493b' : 'rgba(255,255,255,.2)';
+      ctx.beginPath(); const hx = 140 + i * 26, hy = 36;
+      ctx.moveTo(hx, hy + 8); ctx.bezierCurveTo(hx - 14, hy - 2, hx - 6, hy - 12, hx, hy - 4);
+      ctx.bezierCurveTo(hx + 6, hy - 12, hx + 14, hy - 2, hx, hy + 8); ctx.fill();
+    }
+    // progress bar
+    ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(12, 70, 210, 6);
+    ctx.fillStyle = '#ffcf4a'; ctx.fillRect(12, 70, 210 * score / GOAL, 6);
+    if (paused) {
+      ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 40px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText('PAUSED', W / 2, H / 2); ctx.textAlign = 'left';
+    }
+  }
+
+  function loop() {
+    if (state === 'play' && !paused) update(); else t++;
+    drawBackground();
+    if (state !== 'menu') {
+      clouds.forEach(drawCloud); bolts.forEach(drawBolt);
+      stars.forEach(s => drawStar(s.x, s.y, s.r, s.spin, '#ffd75a'));
+      for (const p of sparks) { ctx.globalAlpha = p.life / 40; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 3, 3); }
+      ctx.globalAlpha = 1;
+      if (state !== 'over') drawEagle();
+      drawHUD();
+    }
+    requestAnimationFrame(loop);
+  }
+  reset(); loop();
+})();
+</script>
+</body>
+</html>
