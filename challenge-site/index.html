@@ -1,0 +1,392 @@
+<title>Horikoo Games</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+/* VOICE occasion: a game lobby, loud but tidy
+   IDEA an arcade cabinet with three machines, plus a board of challenge tickets
+   PICTURE the live game machine (dice track, flipping coin, 5x5 gem field)
+   COLOUR graphite ground, chartreuse for wins and actions, coral for losses, gold coins
+   TYPE Space Grotesk for numbers + Noto Sans KR for Korean text
+   LAYOUT laptop: machine left 5/12, tickets right 7/12; phone: title, tabs, machine, tickets */
+:root{color-scheme:dark;--bg:#0f1317;--panel:#1a2027;--panel2:#222a33;--line:#2e3843;--ink:#eef2f5;--dim:#9aa7b4;--win:#c6f432;--winInk:#152000;--loss:#ff5a5f;--gold:#ffd166}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 "Noto Sans KR",system-ui,sans-serif;overflow-x:clip;word-break:keep-all}
+.num{font-family:"Space Grotesk","Noto Sans KR",sans-serif;font-variant-numeric:tabular-nums}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(5vw,16px,env(safe-area-inset-left,0px));padding-right:max(5vw,16px,env(safe-area-inset-right,0px))}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto 0;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:6}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px}
+.logo{font:700 22px "Space Grotesk",sans-serif;letter-spacing:-.02em}
+.logo b{color:var(--win)}
+.bal{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 8px 6px 14px;white-space:nowrap}
+.coin{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3b0,var(--gold) 55%,#c9971c);flex:none;display:inline-block}
+.bal .num{font-weight:700;font-size:18px}
+.btn{font:inherit;font-weight:700;border:0;border-radius:10px;cursor:pointer;min-height:44px;padding:0 16px;color:var(--ink)}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--win);outline-offset:2px}
+.ghost{background:var(--panel2);border:1px solid var(--line)}
+.ghost:hover{border-color:var(--dim)}
+.ghost.on{background:var(--win);color:var(--winInk);border-color:var(--win)}
+.go{background:var(--win);color:var(--winInk);font-size:18px;min-height:54px;width:100%}
+.go:hover{filter:brightness(1.08)}
+.go:active{transform:translateY(1px)}
+.go:disabled{opacity:.45;cursor:not-allowed}
+.small{min-height:36px;font-size:14px;padding:0 12px}
+.head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;padding-block:28px 18px}
+h1{font:900 clamp(32px,5vw,48px)/1.05 "Noto Sans KR",sans-serif;letter-spacing:-.02em;margin:0}
+h2{font-size:22px;margin:0 0 12px}
+.sub{color:var(--dim);margin:6px 0 0}
+.demo{font-size:13px;color:var(--dim);border:1px dashed var(--line);border-radius:8px;padding:6px 10px}
+.grid{display:grid;gap:20px;padding-bottom:48px}
+@media(min-width:900px){.grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr);align-items:start}.machine{position:sticky;top:76px}}
+.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:#0a0d10;border:1px solid var(--line);border-radius:12px;padding:5px}
+.tab{background:transparent;min-height:44px;padding:0 6px;white-space:nowrap;font-size:15px}
+.tab[aria-selected=true]{background:var(--panel2);color:var(--win)}
+.machine{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;display:grid;gap:16px}
+.screen{background:#0a0d10;border:1px solid var(--line);border-radius:14px;padding:18px 16px 16px;text-align:center}
+.big{font-weight:700;font-size:clamp(56px,10vw,88px);line-height:1;letter-spacing:-.03em;transition:color .2s}
+.w{color:var(--win)}.l{color:var(--loss)}
+.verdict{font-weight:700;min-height:1.6em;margin-top:8px}
+.track{position:relative;height:16px;border-radius:999px;background:var(--loss);margin:18px 0 6px}
+.zone{position:absolute;left:0;top:0;bottom:0;border-radius:999px 0 0 999px;background:var(--win)}
+.pin{position:absolute;top:-9px;width:4px;height:34px;margin-left:-2px;background:#fff;border-radius:2px;box-shadow:0 0 0 3px #0a0d10;transition:left .45s cubic-bezier(.2,.9,.2,1)}
+.ticks{display:flex;justify-content:space-between;font-size:13px;color:var(--dim)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.stat{background:var(--panel2);border-radius:10px;padding:10px;text-align:center}
+.stat span{display:block;font-size:13px;color:var(--dim)}
+.stat b{font-size:20px}
+label,.lab{font-size:14px;color:var(--dim);display:block;margin-bottom:6px}
+input[type=range]{width:100%;accent-color:var(--win);height:28px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>*{flex:1 1 0}
+.betrow input,select{flex:1 1 120px;font:700 18px "Space Grotesk",sans-serif;background:#0a0d10;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:0 12px;min-height:44px}
+.betrow .ghost{flex:0 0 auto}
+.stage{perspective:600px;height:150px;display:grid;place-items:center}
+.flip{width:130px;height:130px;position:relative;transform-style:preserve-3d;transition:transform 1s cubic-bezier(.3,1.4,.4,1)}
+.face{position:absolute;inset:0;border-radius:50%;display:grid;place-items:center;font:900 44px "Noto Sans KR",sans-serif;backface-visibility:hidden;background:radial-gradient(circle at 35% 30%,#fff6c4,var(--gold) 50%,#b8860b);color:#5a3b00;box-shadow:inset 0 0 0 8px #e2b13c,inset 0 0 0 11px #fff3}
+.face.back{transform:rotateY(180deg);background:radial-gradient(circle at 35% 30%,#e8f7b0,var(--win) 50%,#6d8f00);color:var(--winInk);box-shadow:inset 0 0 0 8px #a8d020,inset 0 0 0 11px #fff3}
+.field{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.cell{aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:linear-gradient(#2a333d,#1f262e);cursor:pointer;display:grid;place-items:center;padding:0;min-height:0}
+.cell:hover:not(:disabled){border-color:var(--win)}
+.cell:disabled{cursor:default}
+.cell.gem{background:#17240a;border-color:var(--win)}
+.cell.bomb{background:#2a1214;border-color:var(--loss)}
+.cell.dim{opacity:.45}
+.cell svg{width:60%;height:60%}
+.hist{display:flex;gap:6px;flex-wrap:wrap;min-height:30px}
+.chip{font-size:13px;font-weight:700;padding:4px 8px;border-radius:6px;background:var(--panel2);white-space:nowrap}
+.tickets{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.tk{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 16px 14px;display:grid;gap:10px;overflow:hidden}
+.tk::before,.tk::after{content:"";position:absolute;top:58%;width:18px;height:18px;border-radius:50%;background:var(--bg);border:1px solid var(--line)}
+.tk::before{left:-10px}.tk::after{right:-10px}
+.tk.done{border-color:var(--win)}
+.tk.claimed{opacity:.55}
+.tk h3{margin:0;font-size:18px;line-height:1.3}
+.tk p{margin:0;color:var(--dim);font-size:14px}
+.reward{display:flex;align-items:center;gap:6px;font-weight:700;font-size:20px;white-space:nowrap}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--dim);border-top:1px dashed var(--line);padding-top:10px}
+.prog{height:8px;border-radius:99px;background:var(--panel2);overflow:hidden}
+.prog i{display:block;height:100%;background:var(--win);border-radius:99px;transition:width .3s}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--win);color:var(--winInk);font-weight:700;padding:12px 18px;border-radius:12px;box-shadow:0 8px 24px #0008;z-index:9;white-space:nowrap}
+footer{border-top:1px solid var(--line);color:var(--dim);font-size:13px;padding-block:20px}
+@media(prefers-reduced-motion:reduce){.pin,.prog i,.big,.flip{transition:none}}
+</style>
+
+<header><div class="wrap bar">
+  <div class="logo">HORI<b>KOO</b></div>
+  <div class="bal"><span class="coin" aria-hidden="true"></span><span class="num" id="bal">0</span><button class="btn ghost small" id="reset" title="잔액과 진행 상황을 처음으로 되돌립니다">초기화</button></div>
+</div></header>
+
+<main class="wrap">
+  <div class="head">
+    <div>
+      <h1>게임 &amp; 주간 챌린지</h1>
+      <p class="sub">세 가지 게임으로 미션을 깨고 보너스 코인을 받으세요. 남은 시간 <b class="num" id="left">–</b></p>
+    </div>
+    <div class="demo">연습용 데모 · 가상 코인만 사용하며 실제 돈은 오가지 않습니다</div>
+  </div>
+
+  <div class="grid">
+    <section class="machine" aria-label="게임">
+      <div class="tabs" role="tablist">
+        <button class="btn tab" role="tab" data-g="dice">주사위</button>
+        <button class="btn tab" role="tab" data-g="coin">동전 던지기</button>
+        <button class="btn tab" role="tab" data-g="mines">지뢰찾기</button>
+      </div>
+
+      <!-- DICE -->
+      <div id="g-dice" class="game" hidden>
+        <div class="screen">
+          <div class="big num" id="roll">50.00</div>
+          <div class="verdict" id="dVerdict" aria-live="polite">숫자가 초록 구간에 들어오면 승리</div>
+          <div class="track"><div class="zone" id="zone"></div><div class="pin" id="pin" style="left:50%"></div></div>
+          <div class="ticks num"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+        </div>
+        <div class="stats" style="margin-top:16px">
+          <div class="stat"><span>당첨 확률</span><b class="num" id="sChance">49.5%</b></div>
+          <div class="stat"><span>배당</span><b class="num" id="sMult">2.00x</b></div>
+          <div class="stat"><span>이기면 받는 코인</span><b class="num" id="sWin">20</b></div>
+        </div>
+        <div style="margin-top:16px">
+          <label for="chance">당첨 확률 조절 (낮을수록 배당이 커져요)</label>
+          <input type="range" id="chance" min="1" max="95" step="0.5" value="49.5">
+        </div>
+      </div>
+
+      <!-- COIN -->
+      <div id="g-coin" class="game" hidden>
+        <div class="screen">
+          <div class="stage"><div class="flip" id="flip"><div class="face">앞</div><div class="face back">뒤</div></div></div>
+          <div class="verdict" id="cVerdict" aria-live="polite">앞면 또는 뒷면을 고르세요 · 배당 1.98x</div>
+        </div>
+        <div style="margin-top:16px"><span class="lab">내 선택</span>
+          <div class="row"><button class="btn ghost on" data-side="0">앞면</button><button class="btn ghost" data-side="1">뒷면</button></div>
+        </div>
+      </div>
+
+      <!-- MINES -->
+      <div id="g-mines" class="game" hidden>
+        <div class="screen" style="padding:12px">
+          <div class="field" id="field"></div>
+          <div class="verdict" id="mVerdict" aria-live="polite">지뢰를 피해 보석을 찾을수록 배당이 올라가요</div>
+        </div>
+        <div class="stats" style="margin-top:16px">
+          <div class="stat"><span>찾은 보석</span><b class="num" id="mGems">0</b></div>
+          <div class="stat"><span>현재 배당</span><b class="num" id="mMult">1.00x</b></div>
+          <div class="stat"><span>다음 칸 배당</span><b class="num" id="mNext">–</b></div>
+        </div>
+        <div style="margin-top:16px">
+          <label for="mineCount">지뢰 개수</label>
+          <select id="mineCount"></select>
+        </div>
+      </div>
+
+      <div>
+        <label for="bet">베팅 코인</label>
+        <div class="row betrow">
+          <input id="bet" class="num" type="number" min="1" step="1" value="10" inputmode="numeric">
+          <button class="btn ghost" data-b="half">½</button>
+          <button class="btn ghost" data-b="dbl">2×</button>
+          <button class="btn ghost" data-b="max">최대</button>
+        </div>
+      </div>
+      <button class="btn go" id="go">굴리기</button>
+      <div><span class="lab">최근 결과</span><div class="hist" id="hist"></div></div>
+    </section>
+
+    <section aria-label="챌린지 목록">
+      <h2>이번 주 챌린지</h2>
+      <div class="tickets" id="tickets"></div>
+    </section>
+  </div>
+</main>
+
+<footer><div class="wrap">Horikoo Games · 학습·연습용 데모 페이지입니다. 실제 결제, 출금, 경품은 없습니다. 스페이스바로도 플레이할 수 있어요.</div></footer>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+{
+const START=1000,N=25;
+const CH=[
+  {id:'big',t:'50배 이상 맞히기',d:'어떤 게임이든 50x 이상 배당으로 이기기',min:10,r:500,goal:1},
+  {id:'streak',t:'5연승',d:'게임 상관없이 연속으로 5번 이기기',min:5,r:300,goal:5},
+  {id:'haul',t:'한 판에 1,000코인',d:'한 번에 1,000코인 이상 순이익 내기',min:1,r:400,goal:1},
+  {id:'gems',t:'보석 사냥꾼',d:'지뢰찾기 한 판에서 보석 8개 찾기',min:5,r:350,goal:8},
+  {id:'rolls',t:'50판 플레이',d:'승패 상관없이 아무 게임 50판',min:1,r:200,goal:50},
+  {id:'vol',t:'누적 베팅 5,000',d:'베팅한 코인 합계 5,000 채우기',min:1,r:300,goal:5000}
+];
+const GEM='<svg viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z" fill="#c6f432"/><path d="M2 9h20L12 21z" fill="#8fb800"/><path d="M6 3l3 6h6l3-6" fill="#e4ff8a"/></svg>';
+const BOMB='<svg viewBox="0 0 24 24"><circle cx="11" cy="14" r="8" fill="#ff5a5f"/><circle cx="8" cy="11" r="2.5" fill="#ffb3b5"/><path d="M15 7l3-3" stroke="#ffd166" stroke-width="2.5" stroke-linecap="round"/></svg>';
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.floor(n).toLocaleString('ko-KR');
+let S;
+function fresh(){return{bal:START,streak:0,prog:{},claimed:{},hist:[],end:Date.now()+3*864e5+5*36e5,game:'dice',side:0,mines:null}}
+function load(){
+  const hot=window.claude?.hot?.data;
+  if(hot&&hot.bal!==undefined)return hot;
+  try{const j=JSON.parse(localStorage.getItem('hk-games')||'null');if(j&&j.bal!==undefined)return j}catch(e){}
+  return fresh();
+}
+function save(){try{localStorage.setItem('hk-games',JSON.stringify(S))}catch(e){}}
+const bet=()=>Math.max(1,Math.floor(+$('bet').value||0));
+const chance=()=>+$('chance').value;
+const minesMult=(k,g)=>{let m=.99;for(let i=0;i<g;i++)m*=(N-i)/(N-k-i);return m};
+
+let tt;
+function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2200)}
+function setProg(id,val,b){
+  const c=CH.find(x=>x.id===id);if(b<c.min||S.claimed[id])return;
+  const was=(S.prog[id]||0)>=c.goal;S.prog[id]=Math.min(c.goal,val);
+  if(!was&&S.prog[id]>=c.goal)toast('챌린지 달성: '+c.t+'!');
+}
+// common settle for every finished round
+function settle(b,pay,mult,label){
+  const w=pay>0;
+  S.bal+=pay;
+  S.streak=w?S.streak+1:0;
+  S.hist=[{t:label,w},...S.hist].slice(0,12);
+  setProg('rolls',(S.prog.rolls||0)+1,b);
+  setProg('vol',(S.prog.vol||0)+b,b);
+  if(w&&mult>=50)setProg('big',1,b);
+  if(w&&pay-b>=1000)setProg('haul',1,b);
+  setProg('streak',Math.max(S.prog.streak||0,S.streak),b);
+  save();renderAll();
+}
+
+/* ---- dice ---- */
+function playDice(b){
+  const c=chance(),m=99/c,r=Math.floor(Math.random()*10000)/100,w=r<c;
+  S.bal-=b;const pay=w?Math.floor(b*m):0;
+  const el=$('roll');el.textContent=r.toFixed(2);el.className='big num '+(w?'w':'l');
+  $('pin').style.left=r+'%';
+  $('dVerdict').textContent=w?`승리! +${fmt(pay-b)} 코인`:`아쉽네요 −${fmt(b)} 코인`;
+  settle(b,pay,m,r.toFixed(2));
+}
+/* ---- coin ---- */
+let spin=0,busy=false;
+function playCoin(b){
+  busy=true;$('go').disabled=true;
+  S.bal-=b;renderBal();
+  const res=Math.random()<.5?0:1,w=res===S.side;
+  spin+=1800+(res?180:0)-(spin%360);
+  $('flip').style.transform=`rotateY(${spin}deg)`;
+  $('cVerdict').textContent='돌아가는 중…';
+  setTimeout(()=>{
+    busy=false;const pay=w?Math.floor(b*1.98):0;
+    $('cVerdict').innerHTML=`<span class="${w?'w':'l'}">${res?'뒷면':'앞면'} · ${w?'승리! +'+fmt(pay-b):'아쉽네요 −'+fmt(b)} 코인</span>`;
+    settle(b,pay,1.98,res?'뒤':'앞');
+  },matchMedia('(prefers-reduced-motion:reduce)').matches?50:1000);
+}
+/* ---- mines ---- */
+function startMines(b){
+  const k=+$('mineCount').value,set=new Set();
+  while(set.size<k)set.add(Math.floor(Math.random()*N));
+  S.bal-=b;S.mines={b,k,bombs:[...set],open:[],over:false};
+  $('mVerdict').textContent='칸을 눌러 보석을 찾으세요';
+  save();renderAll();
+}
+function cashOut(){
+  const M=S.mines;if(!M||M.over||!M.open.length)return;
+  const m=minesMult(M.k,M.open.length),pay=Math.floor(M.b*m);M.over=true;
+  $('mVerdict').innerHTML=`<span class="w">캐시아웃! +${fmt(pay-M.b)} 코인 (${m.toFixed(2)}x)</span>`;
+  settle(M.b,pay,m,m.toFixed(2)+'x');
+}
+function pick(i){
+  const M=S.mines;if(!M||M.over||M.open.includes(i))return;
+  if(M.bombs.includes(i)){
+    M.over=true;M.hit=i;
+    $('mVerdict').innerHTML=`<span class="l">지뢰! −${fmt(M.b)} 코인</span>`;
+    settle(M.b,0,0,'지뢰');return;
+  }
+  M.open.push(i);
+  setProg('gems',Math.max(S.prog.gems||0,M.open.length),M.b);
+  if(M.open.length===N-M.k){cashOut();return}
+  save();renderAll();
+}
+function renderMines(){
+  const M=S.mines,live=M&&!M.over;
+  $('field').innerHTML=Array.from({length:N},(_,i)=>{
+    let cls='cell',inner='';
+    if(M&&M.open.includes(i)){cls+=' gem';inner=GEM}
+    else if(M&&M.over&&M.bombs.includes(i)){cls+=' bomb'+(M.hit===i?'':' dim');inner=BOMB}
+    else if(M&&M.over){cls+=' dim'}
+    return `<button class="${cls}" data-i="${i}" ${live?'':'disabled'} aria-label="${i+1}번 칸">${inner}</button>`}).join('');
+  const g=M?M.open.length:0,k=M?M.k:+$('mineCount').value;
+  $('mGems').textContent=g;
+  $('mMult').textContent=(g?minesMult(k,g):1).toFixed(2)+'x';
+  $('mNext').textContent=g<N-k?minesMult(k,g+1).toFixed(2)+'x':'–';
+  $('mineCount').disabled=!!live;
+}
+
+/* ---- shared UI ---- */
+function renderBal(){$('bal').textContent=fmt(S.bal)}
+function renderHist(){$('hist').innerHTML=S.hist.length?S.hist.map(h=>`<span class="chip num ${h.w?'w':'l'}">${h.t}</span>`).join(''):'<span class="chip">아직 없음</span>'}
+function renderTickets(){
+  $('tickets').innerHTML=CH.map(c=>{
+    const p=Math.min(S.prog[c.id]||0,c.goal),done=p>=c.goal,cl=S.claimed[c.id],pct=Math.round(p/c.goal*100);
+    const btn=cl?'<span class="chip">받음</span>':done?`<button class="btn go small" style="width:auto;font-size:14px;min-height:36px" data-claim="${c.id}">보상 받기</button>`:`<span class="num">${fmt(p)} / ${fmt(c.goal)}</span>`;
+    return `<article class="tk ${done?'done':''} ${cl?'claimed':''}">
+      <div class="foot"><h3>${c.t}</h3><div class="reward num"><span class="coin"></span>+${fmt(c.r)}</div></div>
+      <p>${c.d}</p>
+      <div class="prog" aria-label="진행률 ${pct}%"><i style="width:${pct}%"></i></div>
+      <div class="meta"><span>최소 베팅 <b class="num">${c.min}</b></span>${btn}</div>
+    </article>`}).join('');
+}
+function renderGo(){
+  const g=S.game,b=bet(),M=S.mines,live=g==='mines'&&M&&!M.over;
+  const go=$('go');
+  if(live){go.disabled=!M.open.length;go.textContent=M.open.length?`캐시아웃 ${fmt(M.b*minesMult(M.k,M.open.length))}`:'칸을 하나 이상 여세요';return}
+  go.disabled=busy||b>S.bal;
+  go.textContent=b>S.bal?'코인이 부족해요':{dice:'굴리기',coin:'던지기',mines:'게임 시작'}[g];
+  $('bet').disabled=false;
+}
+function renderOdds(){
+  const c=chance(),m=99/c;
+  $('zone').style.width=c+'%';
+  $('sChance').textContent=c.toFixed(1)+'%';
+  $('sMult').textContent=m.toFixed(2)+'x';
+  $('sWin').textContent=fmt(bet()*m);
+}
+function renderTabs(){
+  document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.g===S.game));
+  document.querySelectorAll('.game').forEach(g=>g.hidden=g.id!=='g-'+S.game);
+  document.querySelectorAll('[data-side]').forEach(x=>x.classList.toggle('on',+x.dataset.side===S.side));
+}
+function renderAll(){renderBal();renderHist();renderTickets();renderOdds();renderMines();renderTabs();renderGo()}
+function tick(){
+  const ms=Math.max(0,S.end-Date.now()),d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5),m=Math.floor(ms%36e5/6e4);
+  $('left').textContent=ms?`${d}일 ${h}시간 ${m}분`:'종료';
+}
+function play(){
+  if(busy)return;
+  const M=S.mines;
+  if(S.game==='mines'&&M&&!M.over){cashOut();return}
+  const b=bet();if(b>S.bal)return;
+  if(S.game==='dice')playDice(b);else if(S.game==='coin')playCoin(b);else startMines(b);
+}
+
+$('mineCount').innerHTML=Array.from({length:24},(_,i)=>`<option value="${i+1}" ${i===2?'selected':''}>${i+1}개</option>`).join('');
+$('go').onclick=play;
+$('chance').oninput=renderOdds;
+$('bet').oninput=()=>{renderOdds();renderGo()};
+$('mineCount').onchange=renderMines;
+$('field').onclick=e=>{const c=e.target.closest('[data-i]');if(c)pick(+c.dataset.i)};
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  if(S.mines&&!S.mines.over&&t.dataset.g!=='mines'){toast('진행 중인 지뢰찾기를 먼저 끝내세요');return}
+  S.game=t.dataset.g;save();renderAll();
+});
+document.querySelectorAll('[data-side]').forEach(x=>x.onclick=()=>{S.side=+x.dataset.side;save();renderTabs()});
+document.querySelectorAll('[data-b]').forEach(x=>x.onclick=()=>{
+  const v=bet(),k=x.dataset.b;
+  $('bet').value=k==='half'?Math.max(1,Math.floor(v/2)):k==='dbl'?Math.max(1,Math.min(S.bal,v*2)):Math.max(1,Math.floor(S.bal));
+  renderOdds();renderGo();
+});
+$('tickets').onclick=e=>{
+  const id=e.target.closest('[data-claim]')?.dataset.claim;if(!id)return;
+  const c=CH.find(x=>x.id===id);S.claimed[id]=true;S.bal+=c.r;
+  toast(`+${fmt(c.r)} 코인 지급!`);save();renderAll();
+};
+let armed=false;
+$('reset').onclick=()=>{
+  if(!armed){armed=true;$('reset').textContent='정말 초기화?';setTimeout(()=>{armed=false;$('reset').textContent='초기화'},2500);return}
+  armed=false;$('reset').textContent='초기화';S=fresh();save();start();
+};
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document.body){e.preventDefault();play()}});
+
+function start(){
+  // sample mid-play state on first visit so the board shows progress
+  if(!S.hist.length&&S.bal===START&&!Object.keys(S.prog).length){
+    S.prog={rolls:14,vol:620,streak:2,gems:3};S.streak=2;
+    S.hist=[{t:'12.40',w:true},{t:'앞',w:true},{t:'지뢰',w:false},{t:'2.47x',w:true},{t:'63.22',w:false}];
+  }
+  renderAll();tick();
+}
+S=load();
+window.claude?.hot?.snapshot?.(()=>S);
+setInterval(tick,30000);
+start();
+}
+</script>
