@@ -24,6 +24,10 @@
     box-shadow:inset 0 0 0 3px #222, 0 8px 24px rgba(0,0,0,.5); transition:box-shadow .2s; }
   .screen.skill { box-shadow:0 0 0 4px var(--gold), 0 0 28px rgba(255,207,74,.8); }
   canvas { display:block; width:min(88vw,280px); height:auto; aspect-ratio:1/1; border-radius:5px; }
+  .preview-wrap { display:flex; flex-direction:column; align-items:center; gap:6px; margin-bottom:14px; }
+  .screen.preview { border-color:#2c5cff; box-shadow:0 0 0 3px #0b1a55, 0 0 24px rgba(80,130,255,.6); }
+  .screen.preview canvas { width:min(26vw,96px); aspect-ratio:1/3; }
+  .pvhint { font-size:12px; opacity:.7; }
   .bwin { min-height:20px; font-weight:800; font-size:15px; color:#7dffa0; }
   .msg { min-height:28px; margin:12px 0 4px; text-align:center; font-weight:800; color:var(--gold); font-size:19px; }
   .hud { display:flex; justify-content:center; gap:10px; margin:8px 0 12px; flex-wrap:wrap; }
@@ -58,9 +62,15 @@
     <div class="sub">A game of strategy &amp; skill · 3 blocks · play credits only (no real money)</div>
   </header>
 
+  <div class="preview-wrap">
+    <div class="label">PREVIEW · 미리보기</div>
+    <div class="screen preview"><canvas id="pv" width="240" height="720"></canvas></div>
+    <div class="pvhint" id="pvhint">STOP → this column drops into the block</div>
+  </div>
+
   <div class="blocks" id="blocks"></div>
 
-  <div class="msg" id="msg">Press PLAY, then STOP 3 times per block!</div>
+  <div class="msg" id="msg">Press PLAY — the blocks start empty. Fill them from the PREVIEW!</div>
 
   <div class="hud">
     <div class="led"><small>CREDITS</small><span id="credits">0</span></div>
@@ -84,7 +94,8 @@
       <b>9 Alike in a block:</b> all 9 boxes the same → that block's win <b>×10</b>.<br>
       <b>Skill block:</b> any block with at least one winning line lights up gold.
       <b>2 skill blocks = +10 × bet</b>, <b>3 skill blocks = +30 × bet</b>.<br>
-      <b>How to play:</b> PLAY → press <b>STOP 3 times</b> to stop Block 1 (left → right), then 3 more for Block 2, then 3 more for Block 3.<br>
+      <b>How to play:</b> All boxes start empty. PLAY → the <b>PREVIEW</b> spins. Each <b>STOP</b> drops the 3 preview boxes into the next column:
+      3 STOPs fill Block 1 (left → right), then Block 2, then Block 3.<br>
       Keys: <b>Space</b> = PLAY, then STOP · <b>S</b> = STOP · <b>B</b> = BET · <b>M</b> = sound on/off
     </div>
   </div>
@@ -117,7 +128,11 @@
     for (let i = units.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [units[i], units[j]] = [units[j], units[i]]; }
     return units.flat();
   }
-  const SPEEDS = [0.10, 0.12, 0.14];   // cells per frame for column 1 / 2 / 3 of each block
+  // the single PREVIEW reel; it speeds up a little with every column you fill
+  const preview = { strip: makeStrip(2024), pos: 0, spinning: false, target: null, speed: .10, landing: false };
+  preview.pos = Math.floor(Math.random() * preview.strip.length);
+  const pvCtx = document.getElementById('pv').getContext('2d');
+  let pauseT = 0;   // short pause after a column drops in
 
   // ---------- paytable ----------
   document.getElementById('paygrid').innerHTML = SYM.slice().reverse().map(s =>
@@ -136,10 +151,7 @@
     const block = {
       ctx: cv.getContext('2d'), screen: wrap.querySelector('.screen'), winEl: wrap.querySelector('.bwin'),
       next: 0, highlight: [],
-      reels: [0, 1, 2].map(c => {
-        const strip = makeStrip(101 + b * 17 + c * 5);
-        return { strip, pos: Math.floor(Math.random() * strip.length), spinning: false, target: null, speed: SPEEDS[c] };
-      }),
+      cols: [null, null, null],          // each filled column = [top, mid, bottom] symbol ids; null = empty boxes
     };
     return block;
   });
@@ -230,22 +242,35 @@
     credits -= cost; shownCredits = credits; lastWin = 0; save();
     roundActive = true; flash = 0; spinClock = 0; spinIdx = 0;
     blocks.forEach(b => {
-      b.next = 0; b.highlight = []; b.winEl.textContent = ''; b.screen.classList.remove('skill');
-      b.reels.forEach(r => { r.spinning = true; r.target = null; });
+      b.next = 0; b.highlight = []; b.cols = [null, null, null]; b.winEl.textContent = ''; b.screen.classList.remove('skill');
     });
-    msg.textContent = 'Press STOP 3 times for Block 1, then Block 2, then Block 3.';
+    preview.spinning = true; preview.target = null; preview.speed = .10; pauseT = 0;
+    msg.textContent = 'Watch the PREVIEW — press STOP to drop it into Block 1, column 1.';
     SFX.play(); updateHud();
   }
 
   // one STOP button: 3 presses per block, then it moves to the next block
   function stopNext() {
     const b = blocks.find(b => b.next < 3);
-    if (!roundActive || !b) return;
-    const r = b.reels[b.next];
-    r.target = Math.floor(r.pos);       // snap to the next box boundary
+    if (!roundActive || !b || !preview.spinning || preview.target !== null || pauseT > 0) return;
+    preview.target = Math.floor(preview.pos);       // snap to the next box boundary
+    SFX.stop(blocks.indexOf(b) * 3 + b.next + 1);
+    updateHud();
+  }
+
+  // called when the preview reel has landed: copy its 3 boxes into the current block
+  function dropColumn() {
+    const b = blocks.find(b => b.next < 3);
+    const L = preview.strip.length;
+    b.cols[b.next] = [0, 1, 2].map(row => preview.strip[mod(preview.target + row, L)]);
     b.next++;
-    SFX.stop(blocks.indexOf(b) * 3 + b.next);
     if (b.next === 3) SFX.blockDone();
+    if (blocks.every(b => b.next > 2)) { evaluate(); return; }
+    // keep going: restart the preview a bit faster
+    preview.speed = Math.min(.16, preview.speed + .006);
+    pauseT = 18;
+    const nb = blocks.find(b => b.next < 3);
+    msg.textContent = `STOP → Block ${blocks.indexOf(nb) + 1}, column ${nb.next + 1}`;
     updateHud();
   }
 
@@ -264,7 +289,7 @@
   function evaluate() {
     let total = 0, skillBlocks = 0, nineAny = false;
     blocks.forEach(b => {
-      const g = b.reels.map(r => [0,1,2].map(row => r.strip[mod(r.target + row, r.strip.length)]));
+      const g = b.cols;
       let w = 0; b.highlight = [];
       for (const L of LINES) {
         const s = g[L[0][0]][L[0][1]];
@@ -293,7 +318,7 @@
 
   function updateHud() {
     betEl.textContent = bet; tbetEl.textContent = bet * 3; winEl.textContent = lastWin;
-    stopBtn.disabled = !roundActive || blocks.every(b => b.next > 2);
+    stopBtn.disabled = !roundActive || blocks.every(b => b.next > 2) || preview.target !== null || pauseT > 0;
     const cur = roundActive ? blocks.find(b => b.next < 3) : null;
     blocks.forEach(b => b.screen.classList.toggle('active', b === cur));
     playBtn.disabled = roundActive; betBtn.disabled = roundActive;
@@ -327,44 +352,51 @@
       ctx.fillText(sym.e, cx, cy + 8);
     }
   }
+  function drawEmpty(ctx, x, y, active) {
+    ctx.fillStyle = active ? '#3a2f1c' : '#2a2a33';
+    ctx.fillRect(x + 6, y + 6, CELL - 12, CELL - 12);
+    ctx.strokeStyle = active ? 'rgba(255,170,60,.7)' : 'rgba(255,255,255,.08)';
+    ctx.lineWidth = 4; ctx.strokeRect(x + 14, y + 14, CELL - 28, CELL - 28);
+  }
   function drawBlock(b) {
     const ctx = b.ctx;
-    ctx.fillStyle = '#ddd2b8'; ctx.fillRect(0, 0, 720, 720);
-    b.reels.forEach((r, c) => {
-      const L = r.strip.length, base = Math.floor(r.pos), frac = r.pos - base;
-      ctx.save(); ctx.beginPath(); ctx.rect(c * CELL, 0, CELL, 720); ctx.clip();
-      for (let row = -1; row <= 3; row++) drawSymbol(ctx, r.strip[mod(base + row, L)], c * CELL, (row - frac) * CELL);
-      if (r.spinning) { ctx.fillStyle = 'rgba(40,60,140,.12)'; ctx.fillRect(c * CELL, 0, CELL, 720); }
-      ctx.restore();
-    });
-    // column dividers + "next to stop" marker
-    ctx.fillStyle = '#1b2140'; ctx.fillRect(CELL - 3, 0, 6, 720); ctx.fillRect(CELL * 2 - 3, 0, 6, 720);
-    if (roundActive && b.next < 3) {
-      ctx.fillStyle = 'rgba(255,60,40,.9)';
-      ctx.beginPath(); const mx = b.next * CELL + CELL / 2;
-      ctx.moveTo(mx - 26, 700); ctx.lineTo(mx + 26, 700); ctx.lineTo(mx, 668); ctx.fill();
+    ctx.fillStyle = '#15151c'; ctx.fillRect(0, 0, 720, 720);
+    const cur = roundActive ? blocks.find(x => x.next < 3) : null;
+    for (let c = 0; c < 3; c++) for (let r = 0; r < 3; r++) {
+      if (b.cols[c]) drawSymbol(ctx, b.cols[c][r], c * CELL, r * CELL);
+      else drawEmpty(ctx, c * CELL, r * CELL, b === cur && c === b.next);
     }
+    ctx.fillStyle = '#000'; ctx.fillRect(CELL - 3, 0, 6, 720); ctx.fillRect(CELL * 2 - 3, 0, 6, 720);
+    ctx.fillRect(0, CELL - 3, 720, 6); ctx.fillRect(0, CELL * 2 - 3, 720, 6);
     if (b.highlight.length && (flash <= 0 || Math.floor(flash / 8) % 2 === 0)) {
       ctx.lineWidth = 10; ctx.strokeStyle = '#ff2d55';
       for (const [c, r] of b.highlight) { roundRect(ctx, c * CELL + 10, r * CELL + 10, CELL - 20, CELL - 20, 18); ctx.stroke(); }
     }
   }
+  function drawPreview() {
+    const ctx = pvCtx, L = preview.strip.length, base = Math.floor(preview.pos), frac = preview.pos - base;
+    ctx.fillStyle = '#ddd2b8'; ctx.fillRect(0, 0, 240, 720);
+    for (let row = -1; row <= 3; row++) drawSymbol(ctx, preview.strip[mod(base + row, L)], 0, (row - frac) * CELL);
+    if (preview.spinning) { ctx.fillStyle = 'rgba(40,60,140,.12)'; ctx.fillRect(0, 0, 240, 720); }
+    ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, CELL - 2, 240, 4); ctx.fillRect(0, CELL * 2 - 2, 240, 4);
+  }
 
   // ---------- loop ----------
   function tick() {
-    let finished = false;
-    for (const b of blocks) for (const r of b.reels) {
-      if (!r.spinning) continue;
-      const L = r.strip.length;
-      if (r.target === null) { r.pos -= r.speed; if (r.pos < 0) { r.pos += L; } }
-      else if (r.pos - r.target <= r.speed) {
-        r.pos = r.target = mod(r.target, L); r.spinning = false; finished = true;
-      } else r.pos -= r.speed;
+    if (pauseT > 0 && --pauseT === 0) updateHud();
+    if (preview.spinning && pauseT === 0) {
+      const L = preview.strip.length;
+      if (preview.target === null) { preview.pos -= preview.speed; if (preview.pos < 0) preview.pos += L; }
+      else if (preview.pos - preview.target <= preview.speed) {
+        preview.pos = preview.target = mod(preview.target, L);
+        dropColumn();
+        preview.target = null;
+        if (!roundActive) preview.spinning = false;
+        updateHud();
+      } else preview.pos -= preview.speed;
     }
-    // keep targets valid after wrap-around
-    if (finished && roundActive && blocks.every(b => b.reels.every(r => !r.spinning))) evaluate();
     // rolling spin jingle while any reel is still free-spinning
-    if (roundActive && blocks.some(b => b.reels.some(r => r.spinning && r.target === null))) {
+    if (roundActive && preview.spinning && preview.target === null && pauseT === 0) {
       if (++spinClock % 3 === 0) SFX.spinStep(spinIdx++);
     }
     // credits count up one by one with a tick, like the real cabinets
@@ -372,7 +404,7 @@
     else if (shownCredits > credits) shownCredits = credits;
     creditsEl.textContent = shownCredits;
     if (flash > 0) flash--;
-    blocks.forEach(drawBlock);
+    blocks.forEach(drawBlock); drawPreview();
     requestAnimationFrame(tick);
   }
 
