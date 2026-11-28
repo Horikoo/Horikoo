@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Star Stop</title>
+<title>K-Liberty</title>
 <style>
   :root { --edge:#c9342c; --gold:#ffcf4a; --ink:#f4f1e8; }
   * { box-sizing:border-box; }
@@ -42,12 +42,12 @@
   .stop { background:linear-gradient(#ff6a5a,#c51f12); width:min(88vw,280px); font-size:20px; }
   .screen.active { border-color:#ff9a3c; box-shadow:0 0 0 4px #ff9a3c, 0 0 26px rgba(255,140,40,.8); }
   .play { background:linear-gradient(#4ad16a,#1d8a37); width:150px; }
-  #betBtn { width:150px; }
+  #betBtn, #musicBtn { width:150px; }
   .bet  { background:linear-gradient(#5c86ff,#2742b8); }
   .pay { margin:18px auto 0; max-width:640px; background:#f3e2b3; color:#3a1d00; border:4px solid var(--edge);
     border-radius:10px; padding:10px 12px; font-size:15px; }
   .pay h3 { margin:0 0 8px; font-size:14px; text-align:center; letter-spacing:1px; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:2px 14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:2px 14px; }
   .grid div { display:flex; justify-content:space-between; padding:3px 4px; border-bottom:1px dashed rgba(58,29,0,.25); }
   .pay b { color:#b0170c; }
   .rules { font-size:13px; line-height:1.55; margin-top:8px; }
@@ -59,7 +59,7 @@
 <body>
 <div class="cab">
   <header>
-    <h1>★ STAR STOP ★</h1>
+    <h1>★ K-LIBERTY ★</h1>
     <div class="sub">전략과 실력의 게임 · 블록 3개 · 연습용 크레딧 (실제 돈 아님)</div>
   </header>
 
@@ -84,12 +84,15 @@
     <button class="bet" id="betBtn">베팅 (Space)</button>
     <button class="play" id="playBtn">시작 (Enter)</button>
     <button class="bet" id="muteBtn">🔊 소리</button>
+    <button class="bet" id="musicBtn">🎵 음악 (N)</button>
   </div>
 
   <div class="pay">
     <h3>배당표 — 한 줄에 같은 그림 3개 (× 베팅)</h3>
     <div class="grid" id="paygrid"></div>
     <div class="rules">
+      <b>(9개 %)</b> = 한 판에 그 그림으로 9칸을 채울 기회가 올 확률. 점수가 낮을수록 높습니다 (50% → 5%).
+      기회가 오면 미리보기에 같은 그림 3개가 <b>3번 연속</b> 나옵니다 — 세 번 모두 <b>같은 블록</b>에 넣어야 9개가 완성됩니다!<br>
       <b>줄:</b> 블록마다 5줄 (가로 3줄 + 대각선 2줄).<br>
       <b>9칸 같은 그림:</b> 한 블록 9칸이 모두 같으면 그 블록 당첨금 <b>×10</b>.<br>
       <b>스킬 블록:</b> 당첨 줄이 하나라도 있는 블록은 금색으로 빛납니다.
@@ -97,7 +100,7 @@
       <b>게임 방법:</b> 모든 칸은 빈칸으로 시작합니다. 시작 → <b>미리보기</b>에 다음에 들어갈 그림 3개가 보입니다 (그림은 바뀌지 않음).
       <b>블록 1·2·3 아래의 스톱</b>을 누르면 미리보기 그림 3개가 그 블록의 다음 세로줄(1 → 2 → 3)에 들어갑니다.
       어느 블록에 넣을지 직접 고르세요. 9줄이 다 차면 점수를 계산합니다.<br>
-      키보드: <b>Enter</b> = 시작 · <b>A / S / D</b> = 스톱 1 / 2 / 3 · <b>Space</b> = 베팅 · <b>M</b> = 소리 켜기/끄기
+      키보드: <b>Enter</b> = 시작 · <b>A / S / D</b> = 스톱 1 / 2 / 3 · <b>Space</b> = 베팅 · <b>M</b> = 소리 켜기/끄기 · <b>N</b> = 음악 켜기/끄기
     </div>
   </div>
 </div>
@@ -120,21 +123,31 @@
   ];
 
   // the single PREVIEW window: every switch picks 3 RANDOM pictures (no rolling).
-  // About 1 in 5 switches shows 3 of the same, so 9 alike is still possible with good timing.
-  const TRIPLE_CHANCE = 0.2;
+  // Chance of a "9 the same" round: lowest score 50% → highest score 5%.
+  // Same score = same chance.  (값을 바꾸려면 이 두 숫자만 고치면 됩니다)
+  const NINE_MAX = 0.50, NINE_MIN = 0.05;
+  const vLo = Math.min(...SYM.map(s => s.v)), vHi = Math.max(...SYM.map(s => s.v));
+  SYM.forEach(s => s.nine = NINE_MAX - (s.v - vLo) / (vHi - vLo) * (NINE_MAX - NINE_MIN));
   const rnd = () => Math.floor(Math.random() * SYM.length);
-  function randomColumn() {
-    if (Math.random() < TRIPLE_CHANCE) { const s = rnd(); return [s, s, s]; }
-    return [rnd(), rnd(), rnd()];
+  function randomColumn() { return [rnd(), rnd(), rnd()]; }
+  // Each round: pick one picture; with that picture's chance, the round gets a "9 the same" plan:
+  // the preview will show that picture ×3, three drops in a row. Put all three into ONE block to make 9 the same!
+  let plan = null, dropCount = 0;
+  function makePlan() {
+    const s = rnd();
+    plan = Math.random() < SYM[s].nine ? { s, start: Math.floor(Math.random() * 4) } : null;
   }
-  // the preview shows the NEXT 3 pictures; they stay still until you press STOP
+  function nextColumn() {
+    if (plan && dropCount >= plan.start && dropCount < plan.start + 3) return [plan.s, plan.s, plan.s];
+    return randomColumn();
+  }
   const preview = { cur: randomColumn(), spinning: false, target: null };
   const pvCtx = document.getElementById('pv').getContext('2d');
   let pauseT = 0;   // short pause after a column drops in
 
   // ---------- paytable ----------
   document.getElementById('paygrid').innerHTML = SYM.slice().reverse().map(s =>
-    `<div><span>${s.flag ? '<span class="miniflag"></span>' : s.e} ${s.name}</span><b>${s.v}</b></div>`).join('');
+    `<div><span>${s.flag ? '<span class="miniflag"></span>' : s.e} ${s.name} <small style="opacity:.6">(9개 ${Math.round(s.nine * 100)}%)</small></span><b>${s.v}</b></div>`).join('');
 
   // ---------- blocks ----------
   const CELL = 240;
@@ -224,6 +237,43 @@
     },
     count()  { coin(0, .045); },          // a coin drops for every credit paid out
   };
+  // ---------- background music: original cheerful march loop (synthesized) ----------
+  let musicOn = true, musicTimer = null, musicNext = 0, musicStep = 0, musicGain = null;
+  try { musicOn = localStorage.getItem('starStopMusic') !== '0'; } catch (e) {}
+  const BPM = 132, EIGHTH = 60 / BPM / 2;
+  // melody in eighth notes (MIDI numbers, 0 = rest) — 8 bars
+  const MEL = [64,67,72,67,69,67,64,62, 60,62,64,67,64,62,60,0, 65,69,72,69,67,64,67,72, 71,69,67,65,64,62,60,0,
+               67,67,69,71,72,71,69,67, 65,67,69,65,64,62,64,0, 62,64,65,67,69,71,72,74, 72,67,64,67,72,0,72,0];
+  // bass in quarter notes
+  const BASS = [48,43,48,43, 48,43,48,43, 41,48,41,48, 43,38,43,48, 48,43,48,43, 41,48,41,48, 43,38,43,38, 48,43,48,48];
+  const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+  function mnote(freq, t, dur, type, vol) {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(musicGain); o.start(t); o.stop(t + dur + .02);
+  }
+  function musicTick() {
+    while (musicNext < ac.currentTime + 0.3) {
+      const i = musicStep % MEL.length;
+      if (MEL[i]) mnote(hz(MEL[i]), musicNext, EIGHTH * .9, 'square', .018);
+      if (i % 2 === 0) mnote(hz(BASS[(i / 2) % BASS.length]), musicNext, EIGHTH * 1.8, 'triangle', .05);
+      if (i % 2 === 1) noise(musicNext - ac.currentTime, .02, .03, 6000, 'highpass');   // soft hi-hat
+      musicNext += EIGHTH; musicStep++;
+    }
+  }
+  function startMusic() {
+    if (!musicOn || musicTimer || !audio()) return;
+    if (!musicGain) { musicGain = ac.createGain(); musicGain.gain.value = .8; musicGain.connect(master); }
+    musicNext = ac.currentTime + .05; musicTimer = setInterval(musicTick, 100); musicTick();
+  }
+  function stopMusic() { clearInterval(musicTimer); musicTimer = null; }
+  function setMusic(on) {
+    musicOn = on; try { localStorage.setItem('starStopMusic', on ? '1' : '0'); } catch (e) {}
+    on ? startMusic() : stopMusic();
+    const btn = document.getElementById('musicBtn'); if (btn) btn.textContent = on ? '🎵 음악 (N)' : '🎵 음악 끔 (N)';
+  }
+
   function setMuted(m) {
     muted = m; try { localStorage.setItem('starStopMuted', m ? '1' : '0'); } catch (e) {}
     if (master) master.gain.value = m ? 0 : .6;
@@ -244,7 +294,7 @@
     blocks.forEach(b => {
       b.next = 0; b.highlight = []; b.cols = [null, null, null]; b.winEl.textContent = ''; b.screen.classList.remove('skill');
     });
-    preview.spinning = true; preview.target = null; preview.cur = randomColumn(); pauseT = 0;
+    preview.spinning = true; preview.target = null; dropCount = 0; makePlan(); preview.cur = nextColumn(); pauseT = 0;
     msg.textContent = '미리보기 그림을 넣을 블록의 스톱을 누르세요 (블록 1·2·3).';
     SFX.play(); updateHud();
   }
@@ -268,7 +318,8 @@
     b.next++;
     if (b.next === 3) SFX.blockDone();
     if (blocks.every(b => b.next > 2)) { evaluate(); return; }
-    preview.cur = randomColumn();               // next 3 pictures appear and stay still
+    dropCount++;
+    preview.cur = nextColumn();                 // next 3 pictures appear and stay still
     pauseT = 18;
     msg.textContent = '어느 블록에 넣을지 골라서 그 블록의 스톱을 누르세요.';
     updateHud();
@@ -408,6 +459,10 @@
   playBtn.onclick = play;
   betBtn.onclick = cycleBet;
   document.getElementById('muteBtn').onclick = () => setMuted(!muted);
+  document.getElementById('musicBtn').onclick = () => setMusic(!musicOn);
+  document.getElementById('musicBtn').textContent = musicOn ? '🎵 음악 (N)' : '🎵 음악 끔 (N)';
+  // browsers only allow sound after the first click/key, so music starts then
+  ['pointerdown', 'keydown'].forEach(ev => addEventListener(ev, () => startMusic(), { once: false }));
   setMuted(muted);
   document.addEventListener('click', e => { if (e.target.tagName === 'BUTTON') e.target.blur(); });
   addEventListener('keydown', e => {
@@ -417,6 +472,7 @@
     const stopKey = { KeyA: 0, KeyS: 1, KeyD: 2 }[c];                            // A / S / D = 스톱 1 / 2 / 3
     if (stopKey !== undefined) stopBlock(stopKey);
     if (c === 'KeyM') setMuted(!muted);
+    if (c === 'KeyN') { setMusic(!musicOn); return; }
   });
 
   updateHud(); tick();
