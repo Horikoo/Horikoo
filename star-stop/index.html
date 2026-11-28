@@ -94,7 +94,7 @@
       <b>9칸 같은 그림:</b> 한 블록 9칸이 모두 같으면 그 블록 당첨금 <b>×10</b>.<br>
       <b>스킬 블록:</b> 당첨 줄이 하나라도 있는 블록은 금색으로 빛납니다.
       <b>스킬 블록 2개 = +10 × 베팅</b>, <b>3개 = +30 × 베팅</b>.<br>
-      <b>게임 방법:</b> 모든 칸은 빈칸으로 시작합니다. 시작 → <b>미리보기</b> 그림이 계속 바뀝니다 (굴러가지 않음).
+      <b>게임 방법:</b> 모든 칸은 빈칸으로 시작합니다. 시작 → <b>미리보기</b>에 다음에 들어갈 그림 3개가 보입니다 (그림은 바뀌지 않음).
       <b>스톱</b>을 누를 때마다 미리보기 그림 3개가 <b>빈 세로줄 중 랜덤 위치</b>로 들어갑니다.
       스톱 3번에 블록 1, 그다음 블록 2, 블록 3 순서로 채워집니다.<br>
       키보드: <b>스페이스</b> = 시작/스톱 · <b>S</b> = 스톱 · <b>B</b> = 베팅 · <b>M</b> = 소리 켜기/끄기
@@ -127,7 +127,8 @@
     if (Math.random() < TRIPLE_CHANCE) { const s = rnd(); return [s, s, s]; }
     return [rnd(), rnd(), rnd()];
   }
-  const preview = { cur: randomColumn(), spinning: false, target: null, interval: 14, cnt: 0 };
+  // the preview shows the NEXT 3 pictures; they stay still until you press STOP
+  const preview = { cur: randomColumn(), spinning: false, target: null };
   const pvCtx = document.getElementById('pv').getContext('2d');
   let pauseT = 0;   // short pause after a column drops in
 
@@ -241,7 +242,7 @@
     blocks.forEach(b => {
       b.next = 0; b.highlight = []; b.cols = [null, null, null]; b.winEl.textContent = ''; b.screen.classList.remove('skill');
     });
-    preview.spinning = true; preview.target = null; preview.interval = 14; preview.cnt = 0; pauseT = 0;
+    preview.spinning = true; preview.target = null; preview.cur = randomColumn(); pauseT = 0;
     msg.textContent = '미리보기를 보고 스톱을 누르세요 → 블록 1에 들어갑니다.';
     SFX.play(); updateHud();
   }
@@ -266,7 +267,7 @@
     if (b.next === 3) SFX.blockDone();
     if (blocks.every(b => b.next > 2)) { evaluate(); return; }
     // keep going: restart the preview a bit faster
-    preview.interval = Math.max(7, preview.interval - 1);   // switches a little faster each column
+    preview.cur = randomColumn();               // next 3 pictures appear and stay still until STOP
     pauseT = 18;
     const nb = blocks.find(b => b.next < 3);
     msg.textContent = `스톱 → 블록 ${blocks.indexOf(nb) + 1} (빈 세로줄 중 랜덤 위치)`;
@@ -392,10 +393,6 @@
         preview.target = null;
         if (!roundActive) preview.spinning = false;
         updateHud();
-      } else if (roundActive && ++preview.cnt >= preview.interval) {
-        preview.cnt = 0;
-        preview.cur = randomColumn();               // switch to new random pictures (no scrolling)
-        SFX.spinStep(spinIdx++);
       }
     }
     // credits count up one by one with a tick, like the real cabinets
