@@ -39,7 +39,7 @@
     color:#fff; box-shadow:0 5px 0 rgba(0,0,0,.55); }
   button:active:not(:disabled) { transform:translateY(4px); box-shadow:0 1px 0 rgba(0,0,0,.55); }
   button:disabled { opacity:.35; cursor:default; }
-  .stop { background:linear-gradient(#ff6a5a,#c51f12); width:150px; font-size:20px; }
+  .stop { background:linear-gradient(#ff6a5a,#c51f12); width:min(88vw,280px); font-size:20px; }
   .screen.active { border-color:#ff9a3c; box-shadow:0 0 0 4px #ff9a3c, 0 0 26px rgba(255,140,40,.8); }
   .play { background:linear-gradient(#4ad16a,#1d8a37); width:130px; }
   .bet  { background:linear-gradient(#5c86ff,#2742b8); }
@@ -65,12 +65,12 @@
   <div class="preview-wrap">
     <div class="label">미리보기</div>
     <div class="screen preview"><canvas id="pv" width="240" height="720"></canvas></div>
-    <div class="pvhint" id="pvhint">스톱 → 이 그림 3개가 빈 세로줄 중 랜덤 위치로 들어갑니다</div>
+    <div class="pvhint" id="pvhint">블록 아래 스톱을 누르면 이 그림 3개가 그 블록에 들어갑니다</div>
   </div>
 
   <div class="blocks" id="blocks"></div>
 
-  <div class="msg" id="msg">시작을 누르세요 — 빈 블록을 미리보기 그림으로 채우세요!</div>
+  <div class="msg" id="msg">시작을 누르세요 — 미리보기 그림을 원하는 블록에 넣으세요!</div>
 
   <div class="hud">
     <div class="led"><small>크레딧</small><span id="credits">0</span></div>
@@ -81,7 +81,6 @@
 
   <div class="btns">
     <button class="bet" id="betBtn">베팅</button>
-    <button class="stop" id="stopBtn">스톱</button>
     <button class="play" id="playBtn">시작</button>
     <button class="bet" id="muteBtn">🔊 소리</button>
   </div>
@@ -95,9 +94,9 @@
       <b>스킬 블록:</b> 당첨 줄이 하나라도 있는 블록은 금색으로 빛납니다.
       <b>스킬 블록 2개 = +10 × 베팅</b>, <b>3개 = +30 × 베팅</b>.<br>
       <b>게임 방법:</b> 모든 칸은 빈칸으로 시작합니다. 시작 → <b>미리보기</b>에 다음에 들어갈 그림 3개가 보입니다 (그림은 바뀌지 않음).
-      <b>스톱</b>을 누를 때마다 미리보기 그림 3개가 <b>빈 세로줄 중 랜덤 위치</b>로 들어갑니다.
-      스톱 3번에 블록 1, 그다음 블록 2, 블록 3 순서로 채워집니다.<br>
-      키보드: <b>스페이스</b> = 시작/스톱 · <b>S</b> = 스톱 · <b>B</b> = 베팅 · <b>M</b> = 소리 켜기/끄기
+      <b>블록 1·2·3 아래의 스톱</b>을 누르면 미리보기 그림 3개가 그 블록의 다음 세로줄(1 → 2 → 3)에 들어갑니다.
+      어느 블록에 넣을지 직접 고르세요. 9줄이 다 차면 점수를 계산합니다.<br>
+      키보드: <b>스페이스</b> = 시작 · <b>1 / 2 / 3</b> = 블록 1·2·3 스톱 · <b>B</b> = 베팅 · <b>M</b> = 소리 켜기/끄기
     </div>
   </div>
 </div>
@@ -143,21 +142,23 @@
     const wrap = document.createElement('div'); wrap.className = 'block';
     wrap.innerHTML = `<div class="label">블록 ${b + 1}</div>
       <div class="screen"><canvas width="720" height="720"></canvas></div>
-      <div class="bwin"></div>`;
+      <div class="bwin"></div>
+      <button class="stop bstop">스톱 ${b + 1}</button>`;
     blocksEl.appendChild(wrap);
     const cv = wrap.querySelector('canvas');
     const block = {
       ctx: cv.getContext('2d'), screen: wrap.querySelector('.screen'), winEl: wrap.querySelector('.bwin'),
-      next: 0, highlight: [], lastCol: 0, dropFlash: 0,
+      next: 0, highlight: [], lastCol: 0, dropFlash: 0, btn: wrap.querySelector('.bstop'),
       cols: [null, null, null],          // each filled column = [top, mid, bottom] symbol ids; null = empty boxes
     };
+    block.btn.onclick = () => stopBlock(b);
     return block;
   });
 
   // ---------- state ----------
   const $ = id => document.getElementById(id);
   const msg = $('msg'), creditsEl = $('credits'), betEl = $('betv'), tbetEl = $('tbet'), winEl = $('win');
-  const playBtn = $('playBtn'), betBtn = $('betBtn'), stopBtn = $('stopBtn');
+  const playBtn = $('playBtn'), betBtn = $('betBtn');
   let credits = 100;
   try { const s = +localStorage.getItem('starStop3Credits'); if (s > 0) credits = s; } catch (e) {}
   let bet = 1, lastWin = 0, shownCredits = credits, roundActive = false, flash = 0, spinClock = 0, spinIdx = 0, countIdx = 0;
@@ -243,34 +244,32 @@
       b.next = 0; b.highlight = []; b.cols = [null, null, null]; b.winEl.textContent = ''; b.screen.classList.remove('skill');
     });
     preview.spinning = true; preview.target = null; preview.cur = randomColumn(); pauseT = 0;
-    msg.textContent = '미리보기를 보고 스톱을 누르세요 → 블록 1에 들어갑니다.';
+    msg.textContent = '미리보기 그림을 넣을 블록의 스톱을 누르세요 (블록 1·2·3).';
     SFX.play(); updateHud();
   }
 
   // one STOP button: 3 presses per block, then it moves to the next block
-  function stopNext() {
-    const b = blocks.find(b => b.next < 3);
-    if (!roundActive || !b || !preview.spinning || preview.target !== null || pauseT > 0) return;
+  // each block has its own STOP button: the preview pictures drop into THAT block
+  function stopBlock(i) {
+    const b = blocks[i];
+    if (!roundActive || b.next > 2 || preview.target !== null || pauseT > 0) return;
     preview.target = preview.cur.slice();           // take exactly what is showing now
-    SFX.stop(blocks.indexOf(b) * 3 + b.next + 1);
+    preview.dest = i;
+    SFX.stop(i * 3 + b.next + 1);
     updateHud();
   }
 
-  // called when the preview reel has landed: copy its 3 boxes into the current block
+  // copy the preview's 3 pictures into the chosen block, next column in order 1 → 2 → 3
   function dropColumn() {
-    const b = blocks.find(b => b.next < 3);
-    // drop into a RANDOM empty column of this block (not a fixed spot)
-    const empty = [0, 1, 2].filter(c => !b.cols[c]);
-    const col = empty[Math.floor(Math.random() * empty.length)];
+    const b = blocks[preview.dest];
+    const col = b.next;
     b.cols[col] = preview.target; b.lastCol = col; b.dropFlash = 20;
     b.next++;
     if (b.next === 3) SFX.blockDone();
     if (blocks.every(b => b.next > 2)) { evaluate(); return; }
-    // keep going: restart the preview a bit faster
-    preview.cur = randomColumn();               // next 3 pictures appear and stay still until STOP
+    preview.cur = randomColumn();               // next 3 pictures appear and stay still
     pauseT = 18;
-    const nb = blocks.find(b => b.next < 3);
-    msg.textContent = `스톱 → 블록 ${blocks.indexOf(nb) + 1} (빈 세로줄 중 랜덤 위치)`;
+    msg.textContent = '어느 블록에 넣을지 골라서 그 블록의 스톱을 누르세요.';
     updateHud();
   }
 
@@ -318,9 +317,10 @@
 
   function updateHud() {
     betEl.textContent = bet; tbetEl.textContent = bet * 3; winEl.textContent = lastWin;
-    stopBtn.disabled = !roundActive || blocks.every(b => b.next > 2) || preview.target !== null || pauseT > 0;
-    const cur = roundActive ? blocks.find(b => b.next < 3) : null;
-    blocks.forEach(b => b.screen.classList.toggle('active', b === cur));
+    blocks.forEach(b => {
+      b.btn.disabled = !roundActive || b.next > 2 || preview.target !== null || pauseT > 0;
+      b.screen.classList.toggle('active', roundActive && b.next < 3);
+    });
     playBtn.disabled = roundActive; betBtn.disabled = roundActive;
   }
 
@@ -361,10 +361,9 @@
   function drawBlock(b) {
     const ctx = b.ctx;
     ctx.fillStyle = '#15151c'; ctx.fillRect(0, 0, 720, 720);
-    const cur = roundActive ? blocks.find(x => x.next < 3) : null;
     for (let c = 0; c < 3; c++) for (let r = 0; r < 3; r++) {
       if (b.cols[c]) drawSymbol(ctx, b.cols[c][r], c * CELL, r * CELL);
-      else drawEmpty(ctx, c * CELL, r * CELL, b === cur);
+      else drawEmpty(ctx, c * CELL, r * CELL, roundActive && c === b.next);
     }
     ctx.fillStyle = '#000'; ctx.fillRect(CELL - 3, 0, 6, 720); ctx.fillRect(CELL * 2 - 3, 0, 6, 720);
     ctx.fillRect(0, CELL - 3, 720, 6); ctx.fillRect(0, CELL * 2 - 3, 720, 6);
@@ -407,13 +406,12 @@
   // ---------- input ----------
   playBtn.onclick = play;
   betBtn.onclick = cycleBet;
-  stopBtn.onclick = stopNext;
   document.getElementById('muteBtn').onclick = () => setMuted(!muted);
   setMuted(muted);
   addEventListener('keydown', e => {
     const k = e.key.toLowerCase();
-    if (k === ' ' || k === 'enter') { e.preventDefault(); roundActive ? stopNext() : play(); }
-    if (k === 's') stopNext();
+    if (k === ' ' || k === 'enter') { e.preventDefault(); play(); }
+    if (k === '1' || k === '2' || k === '3') stopBlock(+k - 1);
     if (k === 'b') cycleBet();
     if (k === 'm') setMuted(!muted);
   });
