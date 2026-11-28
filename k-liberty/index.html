@@ -44,6 +44,7 @@
   .play { background:linear-gradient(#4ad16a,#1d8a37); width:150px; }
   #betBtn, #musicBtn { width:150px; }
   .bet  { background:linear-gradient(#5c86ff,#2742b8); }
+  .pay.top { margin:0 auto 16px; }
   .pay { margin:18px auto 0; max-width:640px; background:#f3e2b3; color:#3a1d00; border:4px solid var(--edge);
     border-radius:10px; padding:10px 12px; font-size:15px; }
   .pay h3 { margin:0 0 8px; font-size:14px; text-align:center; letter-spacing:1px; }
@@ -62,6 +63,22 @@
     <h1>★ K-LIBERTY ★</h1>
     <div class="sub">전략과 실력의 게임 · 블록 3개 · 연습용 크레딧 (실제 돈 아님)</div>
   </header>
+  <div class="pay top">
+    <h3>배당표 — 한 줄에 같은 그림 3개 (× 베팅)</h3>
+    <div class="grid" id="paygrid"></div>
+    <div class="rules">
+      <b>올 매치 (9칸 같은 그림) 기회: 한 판에 70%.</b> (9개 %) = 그 그림으로 기회가 올 확률 — 점수가 낮을수록 높습니다.
+      기회가 오면 미리보기에 같은 그림 3개가 <b>3번 연속</b> 나옵니다 — 세 번 모두 <b>같은 블록</b>에 넣어야 9개가 완성됩니다!<br>
+      <b>줄:</b> 블록마다 5줄 (가로 3줄 + 대각선 2줄).<br>
+      <b>9칸 같은 그림:</b> 한 블록 9칸이 모두 같으면 그 블록 당첨금 <b>×10</b>.<br>
+      <b>블록 매칭:</b> 당첨 줄이 있는 블록은 금색으로 빛납니다.
+      <b>2블록 매칭 = 점수 ×1.5</b>, <b>3블록 모두 매칭 = 점수 ×3</b>.<br>
+      <b>게임 방법:</b> 모든 칸은 빈칸으로 시작합니다. 시작 → <b>미리보기</b>에 다음에 들어갈 그림 3개가 보입니다 (그림은 바뀌지 않음).
+      <b>블록 1·2·3 아래의 스톱</b>을 누르면 미리보기 그림 3개가 그 블록의 다음 세로줄(1 → 2 → 3)에 들어갑니다.
+      어느 블록에 넣을지 직접 고르세요. 9줄이 다 차면 점수를 계산합니다.<br>
+      키보드: <b>Enter</b> = 시작 · <b>A / S / D</b> = 스톱 1 / 2 / 3 · <b>Space</b> = 베팅 · <b>M</b> = 소리 켜기/끄기 · <b>N</b> = 음악 켜기/끄기
+    </div>
+  </div>
 
   <div class="preview-wrap">
     <div class="label">미리보기</div>
@@ -86,23 +103,6 @@
     <button class="bet" id="muteBtn">🔊 소리</button>
     <button class="bet" id="musicBtn">🎵 음악 (N)</button>
   </div>
-
-  <div class="pay">
-    <h3>배당표 — 한 줄에 같은 그림 3개 (× 베팅)</h3>
-    <div class="grid" id="paygrid"></div>
-    <div class="rules">
-      <b>(9개 %)</b> = 한 판에 그 그림으로 9칸을 채울 기회가 올 확률. 점수가 낮을수록 높습니다 (50% → 5%).
-      기회가 오면 미리보기에 같은 그림 3개가 <b>3번 연속</b> 나옵니다 — 세 번 모두 <b>같은 블록</b>에 넣어야 9개가 완성됩니다!<br>
-      <b>줄:</b> 블록마다 5줄 (가로 3줄 + 대각선 2줄).<br>
-      <b>9칸 같은 그림:</b> 한 블록 9칸이 모두 같으면 그 블록 당첨금 <b>×10</b>.<br>
-      <b>스킬 블록:</b> 당첨 줄이 하나라도 있는 블록은 금색으로 빛납니다.
-      <b>스킬 블록 2개 = +10 × 베팅</b>, <b>3개 = +30 × 베팅</b>.<br>
-      <b>게임 방법:</b> 모든 칸은 빈칸으로 시작합니다. 시작 → <b>미리보기</b>에 다음에 들어갈 그림 3개가 보입니다 (그림은 바뀌지 않음).
-      <b>블록 1·2·3 아래의 스톱</b>을 누르면 미리보기 그림 3개가 그 블록의 다음 세로줄(1 → 2 → 3)에 들어갑니다.
-      어느 블록에 넣을지 직접 고르세요. 9줄이 다 차면 점수를 계산합니다.<br>
-      키보드: <b>Enter</b> = 시작 · <b>A / S / D</b> = 스톱 1 / 2 / 3 · <b>Space</b> = 베팅 · <b>M</b> = 소리 켜기/끄기 · <b>N</b> = 음악 켜기/끄기
-    </div>
-  </div>
 </div>
 
 <script>
@@ -126,15 +126,23 @@
   // Same score = same chance.  (값을 바꾸려면 이 두 숫자만 고치면 됩니다)
   const NINE_MAX = 0.50, NINE_MIN = 0.05;
   const vLo = Math.min(...SYM.map(s => s.v)), vHi = Math.max(...SYM.map(s => s.v));
-  SYM.forEach(s => s.nine = NINE_MAX - (s.v - vLo) / (vHi - vLo) * (NINE_MAX - NINE_MIN));
+  SYM.forEach(s => s.weight = NINE_MAX - (s.v - vLo) / (vHi - vLo) * (NINE_MAX - NINE_MIN));
+  // ALL MATCH (9 the same) chance per round = 70%; lower-score pictures get a bigger share of it
+  const ALL_MATCH_CHANCE = 0.70;
+  const wSum = SYM.reduce((a, s) => a + s.weight, 0);
+  SYM.forEach(s => s.nine = ALL_MATCH_CHANCE * s.weight / wSum);
+  function pickWeighted() {
+    let r = Math.random() * wSum;
+    for (let i = 0; i < SYM.length; i++) { r -= SYM[i].weight; if (r <= 0) return i; }
+    return SYM.length - 1;
+  }
   const rnd = () => Math.floor(Math.random() * SYM.length);
   function randomColumn() { return [rnd(), rnd(), rnd()]; }
   // Each round: pick one picture; with that picture's chance, the round gets a "9 the same" plan:
   // the preview will show that picture ×3, three drops in a row. Put all three into ONE block to make 9 the same!
   let plan = null, dropCount = 0;
   function makePlan() {
-    const s = rnd();
-    plan = Math.random() < SYM[s].nine ? { s, start: Math.floor(Math.random() * 4) } : null;
+    plan = Math.random() < ALL_MATCH_CHANCE ? { s: pickWeighted(), start: Math.floor(Math.random() * 4) } : null;
   }
   function nextColumn() {
     if (plan && dropCount >= plan.start && dropCount < plan.start + 3) return [plan.s, plan.s, plan.s];
@@ -146,7 +154,7 @@
 
   // ---------- paytable ----------
   document.getElementById('paygrid').innerHTML = SYM.slice().reverse().map(s =>
-    `<div><span>${s.flag ? '<span class="miniflag"></span>' : s.e} ${s.name} <small style="opacity:.6">(9개 ${Math.round(s.nine * 100)}%)</small></span><b>${s.v}</b></div>`).join('');
+    `<div><span>${s.flag ? '<span class="miniflag"></span>' : s.e} ${s.name} <small style="opacity:.6">(9개 ${(s.nine * 100).toFixed(1)}%)</small></span><b>${s.v}</b></div>`).join('');
 
   // ---------- blocks ----------
   const CELL = 240;
@@ -351,14 +359,15 @@
       b.winEl.textContent = w > 0 ? (nine ? `9칸 같은 그림! +${w}` : `+${w}`) : '';
       total += w;
     });
-    let bonus = 0;
-    if (skillBlocks >= 2) bonus = (skillBlocks === 3 ? 30 : 10) * bet;
-    total += bonus;
+    // matching blocks multiply the whole win: 2 blocks ×1.5, all 3 blocks ×3
+    const mult = skillBlocks === 3 ? 3 : skillBlocks === 2 ? 1.5 : 1;
+    const bonus = mult > 1;
+    total = Math.round(total * mult);
     lastWin = total; credits += total; save(); roundActive = false;
 
     const parts = [];
     if (nineAny) parts.push('★ 9칸 같은 그림 ×10 ★');
-    if (bonus) parts.push(`스킬 블록 ${skillBlocks}개 +${bonus}`);
+    if (bonus) parts.push(`${skillBlocks}블록 매칭 ×${mult}`);
     if (total > 0) { msg.textContent = (parts.length ? parts.join(' · ') + ' — ' : '') + `당첨 ${total}!`; flash = 90; 
       if (nineAny) SFX.jackpot(); else if (bonus) { SFX.skill(); SFX.win(true); } else SFX.win(total >= 15 * bet);
     }
