@@ -41,7 +41,8 @@
   button:disabled { opacity:.35; cursor:default; }
   .stop { background:linear-gradient(#ff6a5a,#c51f12); width:min(88vw,280px); font-size:20px; }
   .screen.active { border-color:#ff9a3c; box-shadow:0 0 0 4px #ff9a3c, 0 0 26px rgba(255,140,40,.8); }
-  .play { background:linear-gradient(#4ad16a,#1d8a37); width:130px; }
+  .play { background:linear-gradient(#4ad16a,#1d8a37); width:150px; }
+  #betBtn { width:150px; }
   .bet  { background:linear-gradient(#5c86ff,#2742b8); }
   .pay { margin:18px auto 0; max-width:640px; background:#f3e2b3; color:#3a1d00; border:4px solid var(--edge);
     border-radius:10px; padding:10px 12px; font-size:15px; }
@@ -80,8 +81,8 @@
   </div>
 
   <div class="btns">
-    <button class="bet" id="betBtn">베팅</button>
-    <button class="play" id="playBtn">시작</button>
+    <button class="bet" id="betBtn">베팅 (Space)</button>
+    <button class="play" id="playBtn">시작 (Enter)</button>
     <button class="bet" id="muteBtn">🔊 소리</button>
   </div>
 
@@ -96,7 +97,7 @@
       <b>게임 방법:</b> 모든 칸은 빈칸으로 시작합니다. 시작 → <b>미리보기</b>에 다음에 들어갈 그림 3개가 보입니다 (그림은 바뀌지 않음).
       <b>블록 1·2·3 아래의 스톱</b>을 누르면 미리보기 그림 3개가 그 블록의 다음 세로줄(1 → 2 → 3)에 들어갑니다.
       어느 블록에 넣을지 직접 고르세요. 9줄이 다 차면 점수를 계산합니다.<br>
-      키보드: <b>스페이스</b> = 시작 · <b>1 / 2 / 3</b> = 블록 1·2·3 스톱 · <b>B</b> = 베팅 · <b>M</b> = 소리 켜기/끄기
+      키보드: <b>Enter</b> = 시작 · <b>A / S / D</b> = 스톱 1 / 2 / 3 · <b>Space</b> = 베팅 · <b>M</b> = 소리 켜기/끄기
     </div>
   </div>
 </div>
@@ -143,7 +144,7 @@
     wrap.innerHTML = `<div class="label">블록 ${b + 1}</div>
       <div class="screen"><canvas width="720" height="720"></canvas></div>
       <div class="bwin"></div>
-      <button class="stop bstop">스톱 ${b + 1}</button>`;
+      <button class="stop bstop">스톱 ${b + 1} (${'ASD'[b]})</button>`;
     blocksEl.appendChild(wrap);
     const cv = wrap.querySelector('canvas');
     const block = {
@@ -408,12 +409,14 @@
   betBtn.onclick = cycleBet;
   document.getElementById('muteBtn').onclick = () => setMuted(!muted);
   setMuted(muted);
+  document.addEventListener('click', e => { if (e.target.tagName === 'BUTTON') e.target.blur(); });
   addEventListener('keydown', e => {
-    const k = e.key.toLowerCase();
-    if (k === ' ' || k === 'enter') { e.preventDefault(); play(); }
-    if (k === '1' || k === '2' || k === '3') stopBlock(+k - 1);
-    if (k === 'b') cycleBet();
-    if (k === 'm') setMuted(!muted);
+    const c = e.code;   // physical key, so it works in 한글 input mode too
+    if (c === 'Enter' || c === 'NumpadEnter') { e.preventDefault(); play(); }   // Enter = 시작
+    if (c === 'Space') { e.preventDefault(); cycleBet(); }                      // Space = 베팅
+    const stopKey = { KeyA: 0, KeyS: 1, KeyD: 2 }[c];                            // A / S / D = 스톱 1 / 2 / 3
+    if (stopKey !== undefined) stopBlock(stopKey);
+    if (c === 'KeyM') setMuted(!muted);
   });
 
   updateHud(); tick();
